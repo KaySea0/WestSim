@@ -7,7 +7,7 @@ import openpyxl
 # from email.mime.text import MIMEText
 
 # MY_ADDRESS = "info@westsiminc.com"
-# MY_PASSWORD = ""
+# MY_PASSWORD = "Sukkur%%1798"
 
 # s = smtplib.SMTP(host='smtp-mail.outlook.com', port=587)
 # s.starttls()
