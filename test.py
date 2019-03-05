@@ -6,6 +6,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
+from string import Template
 
 MY_ADDRESS = "info@westsiminc.com"
 MY_PASSWORD = "Sukkur%%1798"
@@ -20,8 +21,9 @@ s.login(MY_ADDRESS,MY_PASSWORD)
 
 msg = MIMEMultipart('related')
 
-message = "This is a test email. Lets see if we can send a response to this!"
-signature = """Best, <br>\
+signature = """<p> Please provide a quote for the following: <br> <br>\
+${PART_INFO} <br> 
+Best, <br> </p>
 <p style="color: blue;">Kyle Cook <br>
 WestSim Engineering, Inc. <br>
 7061 Grand National Dr. Suite 107A <br>
@@ -41,8 +43,9 @@ msg['Subject'] = "Test Email from Python"
 msgBody = MIMEMultipart('alternative')
 msg.attach(msgBody)
 
-msgBody.attach(MIMEText(message,'plain'))
-msgBody.attach(MIMEText(signature,'html'))
+subMessage = Template(signature).substitute(PART_INFO = "P/N: 132456-789 - QTY 2 <br>")
+
+msgBody.attach(MIMEText(subMessage,'html'))
 
 fp = open('logo.png','rb')
 img = MIMEImage(fp.read())
