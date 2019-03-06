@@ -1,0 +1,13 @@
+<p> Please provide a quote for the following: <br> <br>
+${PART_INFO} <br> 
+Best, <br> </p>
+<p style="color: blue;">Kyle Cook <br>
+WestSim Engineering, Inc. <br>
+7061 Grand National Dr. Suite 107A <br>
+Orlando, FL 32819 <br></p>
+<p> info@westsiminc.com <br>
+Phone: (407) 963-6699 <br>
+Fax: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(407) 203-4264 <br>
+http://www.westsiminc.com/ <br>
+<img src="cid:logo"> <br>
+</p>
