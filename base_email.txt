@@ -1,7 +1,7 @@
 <p> Please provide a quote for the following: <br> <br>
 ${PART_INFO} <br> 
 Best, <br> </p>
-<p style="color: blue;">Kyle Cook <br>
+<p style="color: blue;">Ali Kalwar <br>
 WestSim Engineering, Inc. <br>
 7061 Grand National Dr. Suite 107A <br>
 Orlando, FL 32819 <br></p>
