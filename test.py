@@ -2,6 +2,7 @@
 # https://medium.freecodecamp.org/send-emails-using-code-4fcea9df63f - how to send emails automatically
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
 import openpyxl
 import smtplib
 import json
@@ -10,11 +11,24 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from string import Template
 
+# price break = p
+# group email = g
+
+# company name -> P/N -> QTY -> Info
+# have way to add entry not from email
+# days count down
+# < $10k, 3 days
+# > $10k, 2 weeks
+# create lists based on files in Cheat_Sheet folder
+
 # how to open / edit / save workbooks
 # wb.save('Ship-Invoice-02142019.xlsx')
 
-MY_ADDRESS = "ali.kalwar@westsiminc.com"
-MY_PASSWORD = "Sukkur$$88"
+MY_ADDRESS = "info@westsiminc.com"
+MY_PASSWORD = "Sukkur%%1798"
+
+# MY_ADDRESS = "ali.kalwar@westsiminc.com"
+# MY_PASSWORD = "Sukkur$$88"
 
 class Frames(object):
 
@@ -30,6 +44,14 @@ class Frames(object):
 		
 	def open_file(self,file_destination):
 		file_destination.set(filedialog.askopenfilename())
+		
+	def send_emails(self):
+		s = smtplib.SMTP(host='smtp-mail.outlook.com', port=587)
+		s.starttls()
+		s.login(MY_ADDRESS,MY_PASSWORD)
+		
+		for msg in self.email_list:
+			s.send_message(msg)
 		
 	def process_ali_sheet(self, prev_window):
 	
@@ -48,10 +70,17 @@ class Frames(object):
 		# to skip vendor, put contact info into second column of email
 		
 		if ali_max_row == 2 and cage_dict.get(str(ali_ws['V2'].value),"0") != "0":
-			part_info = "P/N: " + str(ali_ws['X2'].value) + "<br> QTY: " + str(ali_ws['I2'].value) + " or next price break<br><br>"
+			part_info = "P/N: " + str(ali_ws['X2'].value) + "<br> QTY: " + str(ali_ws['I2'].value) 
+			
+			if 'p' in cage_dict[str(ali_ws['V2'].value)]['options']:
+				part_info += " or next price break"
+				
+			part_info += "<br><br>"
+			
 			sub_message = email_body.substitute(PART_INFO = part_info)
-			to_address = cage_dict[str(ali_ws['V2'].value)]
+			to_address = cage_dict[str(ali_ws['V2'].value)]['email']
 			message_list.append((sub_message,to_address))
+			
 		else:
 			for i in range(2,ali_max_row+1):
 				cur_cage_code = str(ali_ws['V' + str(i)].value)
@@ -59,27 +88,57 @@ class Frames(object):
 				cur_QTY = str(ali_ws['I' + str(i)].value)
 				
 				if i == 2 and cage_dict.get(cur_cage_code,"0") != "0":
-					part_info += "P/N: " + cur_PN + "<br> QTY: " + cur_QTY + " or next price break<br><br>"
+					part_info += "P/N: " + cur_PN + "<br> QTY: " + cur_QTY
+					
+					if 'p' in cage_dict[cur_cage_code]['options']:
+						part_info += " or next price break"
+						
+					part_info += "<br><br>"
 					past_cage_code = cur_cage_code
+					
 				elif cage_dict.get(cur_cage_code,"0") != "0":
-					if cur_cage_code == past_cage_code:
-						part_info += "P/N: " + cur_PN + "<br> QTY: " + cur_QTY + " or next price break<br><br>"
+					if cur_cage_code == past_cage_code and 'g' in cage_dict[cur_cage_code]['options']:
+						part_info += "P/N: " + cur_PN + "<br> QTY: " + cur_QTY
+						
+						if 'p' in cage_dict[cur_cage_code]['options']:
+							part_info += " or next price break"
+							
+						part_info += "<br><br>"
+						
 					else:
 						if cage_dict.get(past_cage_code,"0") != "0":
 							sub_message = email_body.substitute(PART_INFO = part_info)
-							to_address = cage_dict[past_cage_code]
+							to_address = cage_dict[past_cage_code]['email']
 							message_list.append((sub_message,to_address))
 						
 						past_cage_code = cur_cage_code
-						part_info = "P/N: " + cur_PN + "<br> QTY: " + cur_QTY + " or next price break<br><br>"
+						part_info = "P/N: " + cur_PN + "<br> QTY: " + cur_QTY
+						
+						if 'p' in cage_dict[cur_cage_code]['options']:
+							part_info += " or next price break"
+						
+						part_info += "<br><br>"
 						
 					if i == ali_max_row:
 						sub_message = email_body.substitute(PART_INFO = part_info)
-						to_address = cage_dict[past_cage_code]
+						to_address = cage_dict[past_cage_code]['email']
 						message_list.append((sub_message,to_address))
+						
+						part_info = "P/N: " + cur_PN + "<br> QTY: " + cur_QTY
+						
+						if 'p' in cage_dict[cur_cage_code]['options']:
+							part_info += " or next price break"
+							
+						part_info += "<br><br>"
+						
+						sub_message = email_body.substitute(PART_INFO = part_info)
+						to_address = cage_dict[cur_cage_code]['email']
+						message_list.append((sub_message,to_address))
+						
+						
 				elif part_info != "":
 					sub_message = email_body.substitute(PART_INFO = part_info)
-					to_address = cage_dict[past_cage_code]
+					to_address = cage_dict[past_cage_code]['email']
 					message_list.append((sub_message,to_address))
 					
 					part_info = ""
@@ -115,13 +174,14 @@ class Frames(object):
 			msg = MIMEMultipart('related')
 
 			msg['From'] = MY_ADDRESS
-			msg['To'] = message_list[count['value']][1]
+			# msg['To'] = message_list[count['value']][1]
+			msg['To'] = "k.cook2499@gmail.com"
 			msg['Subject'] = "Quote"
 
 			msgBody = MIMEMultipart()
 			msg.attach(msgBody)
 
-			msgBody.attach(MIMEText(message_list[count['value']][0],'html'))
+			msgBody.attach(MIMEText("TO: " + message_list[count['value']][1] + "<br>" + message_list[count['value']][0],'html'))
 
 			fp = open('logo.png','rb')
 			img = MIMEImage(fp.read())
@@ -136,20 +196,13 @@ class Frames(object):
 			if count['value'] != len(message_list):
 				email_preview.delete('1.0',tk.END)
 				email_preview.insert("1.0","TO: " + message_list[count['value']][1] + "\n" + message_list[count['value']][0].replace("<br><br>","\n").replace("<br>","\n"))
-			# else:
-				# self.send_emails()
+			else:
+				self.send_emails()
+				t.destroy()
+				tk.tkMessageBox.showinfo("Email Confirmation", "All " + str(len(self.email_list)) + " emails have been sent!")
 		
 		confirm_button = tk.Button(t,text="Yes",command = confirm_email)
 		confirm_button.grid(row=2,column=0,stick="w",padx=5)
-		
-	def send_emails(self):
-		s = smtplib.SMTP(host='smtp-mail.outlook.com', port=587)
-		s.starttls()
-		s.login(MY_ADDRESS,MY_PASSWORD)
-		
-		for msg in self.email_list:
-			s.send_message(msg)
-			
 		
 	def main_frame(self,root):
 		root.title("Westsim Engineering")
@@ -177,6 +230,8 @@ class Frames(object):
 
 		another_button = tk.Button(frame,text="Goodbye!",command=quit)
 		another_button.grid(row=1,column=1,padx=10,pady=10)
+		
+		alert_test = tk.Button(frame,text="Let's open an alert window!",command=lambda: tk.messagebox.showinfo(("Email Confirmation", "This is a test alert!")))
 		
 	def sub_window(self):
 	
