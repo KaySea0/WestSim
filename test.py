@@ -48,7 +48,7 @@ class Frames(object):
 		# to skip vendor, put contact info into second column of email
 		
 		if ali_max_row == 2 and cage_dict.get(str(ali_ws['V2'].value),"0") != "0":
-			part_info = "P/N: " + str(ali_ws['X2'].value) + "<br> QTY: " + str(ali_ws['I2'].value) + " or next price break\n<br><br>"
+			part_info = "P/N: " + str(ali_ws['X2'].value) + "<br> QTY: " + str(ali_ws['I2'].value) + " or next price break<br><br>"
 			sub_message = email_body.substitute(PART_INFO = part_info)
 			to_address = cage_dict[str(ali_ws['V2'].value)]
 			message_list.append((sub_message,to_address))
@@ -59,19 +59,19 @@ class Frames(object):
 				cur_QTY = str(ali_ws['I' + str(i)].value)
 				
 				if i == 2 and cage_dict.get(cur_cage_code,"0") != "0":
-					part_info += "P/N: " + cur_PN + "<br> QTY: " + cur_QTY + " or next price break\n<br><br>"
+					part_info += "P/N: " + cur_PN + "<br> QTY: " + cur_QTY + " or next price break<br><br>"
 					past_cage_code = cur_cage_code
 				elif cage_dict.get(cur_cage_code,"0") != "0":
 					if cur_cage_code == past_cage_code:
-						part_info += "P/N: " + cur_PN + "<br> QTY: " + cur_QTY + " or next price break\n<br><br>"
+						part_info += "P/N: " + cur_PN + "<br> QTY: " + cur_QTY + " or next price break<br><br>"
 					else:
-						if cage_dict.get(past_cage_code,"0") != 0:
+						if cage_dict.get(past_cage_code,"0") != "0":
 							sub_message = email_body.substitute(PART_INFO = part_info)
 							to_address = cage_dict[past_cage_code]
 							message_list.append((sub_message,to_address))
 						
 						past_cage_code = cur_cage_code
-						part_info = "P/N: " + cur_PN + "<br> QTY: " + cur_QTY + " or next price break\n<br><br>"
+						part_info = "P/N: " + cur_PN + "<br> QTY: " + cur_QTY + " or next price break<br><br>"
 						
 					if i == ali_max_row:
 						sub_message = email_body.substitute(PART_INFO = part_info)
@@ -83,17 +83,30 @@ class Frames(object):
 					message_list.append((sub_message,to_address))
 					
 					part_info = ""
+					past_cage_code = cur_cage_code
 		
 		count = {'value': 0}
 	
 		prev_window.destroy()
 		t = tk.Toplevel()
 		t.title("Email Confirmation")
-		t.geometry('500x800')
+		t.geometry('500x600')
+		t.rowconfigure(0,weight=1)
+		t.columnconfigure(0,weight=1)
 		
-		email_preview = tk.Label(t)
-		email_preview.configure(text="TO: " + message_list[count['value']][1] + message_list[count['value']][0])
-		email_preview.grid(row=0,column=0,sticky="nw",padx=10,pady=10)
+		email_frame = tk.Frame(t)
+		email_frame.grid_rowconfigure(0,weight=1)
+		email_frame.grid_columnconfigure(0,weight=1)
+		email_frame.grid(row=0,column=0)
+		
+		scroll = tk.Scrollbar(email_frame, orient="vertical")
+		scroll.grid(row=0,column=1,sticky="ns")
+		
+		email_preview = tk.Text(email_frame,height=500,width=75,yscrollcommand=scroll.set)
+		email_preview.insert("1.0","TO: " + message_list[count['value']][1] + "\n" + message_list[count['value']][0].replace("<br><br>","\n").replace("<br>","\n"))
+		email_preview.grid(row=0,column=0,sticky="nwe",padx=10,pady=10)
+		
+		scroll.config(command=email_preview.yview)
 		
 		confirmation_label = tk.Label(t,text="Does this email look correct?")
 		confirmation_label.grid(row=1,column=0,sticky="w",padx=5)
@@ -121,12 +134,11 @@ class Frames(object):
 			count['value'] += 1
 			
 			if count['value'] != len(message_list):
-				email_preview.configure(text="TO: " + message_list[count['value']][1] + message_list[count['value']][0])
-				email_preview.update()
+				email_preview.delete('1.0',tk.END)
+				email_preview.insert("1.0","TO: " + message_list[count['value']][1] + "\n" + message_list[count['value']][0].replace("<br><br>","\n").replace("<br>","\n"))
 			# else:
 				# self.send_emails()
 		
-		# fix command here: need to create inner method to create msg object and then append to email_list
 		confirm_button = tk.Button(t,text="Yes",command = confirm_email)
 		confirm_button.grid(row=2,column=0,stick="w",padx=5)
 		
