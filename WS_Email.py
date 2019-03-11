@@ -1,11 +1,12 @@
 # https://medium.com/dreamcatcher-its-blog/making-an-stand-alone-executable-from-a-python-script-using-pyinstaller-d1df9170e263
 # ^ how to make executable -- need to do at Westsim office
 import tkinter as tk
-from tkinter import filedialog
-from tkinter import messagebox
 import openpyxl
 import smtplib
 import json
+import datetime
+from tkinter import filedialog
+from tkinter import messagebox
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
@@ -16,10 +17,9 @@ from string import Template
 
 # company name -> P/N -> QTY -> Info
 # have way to add entry not from email
-# days count down
-# < $10k, 3 days
-# > $10k, 2 weeks
 # create lists based on files in Cheat_Sheet folder
+
+# in future, maybe add ability to edit email entry
 
 # how to open / edit / save workbooks
 # wb.save('Ship-Invoice-02142019.xlsx')
@@ -30,7 +30,7 @@ MY_PASSWORD = "Sukkur%%1798"
 # MY_ADDRESS = "ali.kalwar@westsiminc.com"
 # MY_PASSWORD = "Sukkur$$88"
 
-class Frames(object):
+class WS_Email(object):
 
 	def __init__(self):
 		self.ali_sheet_name = tk.StringVar()
@@ -56,9 +56,18 @@ class Frames(object):
 		
 	def process_ali_sheet(self, prev_window):
 	
+		self.email_list.clear()
+	
 		ali_wb = openpyxl.load_workbook(self.ali_sheet_name.get())
 		ali_ws = ali_wb.active
 		ali_max_row = ali_ws.max_row
+		
+		cur_DT = str(datetime.datetime.now())
+		cur_date = cur_DT[:cur_DT.find(' ')]
+		
+		bid_wb = openpyxl.Workbook()
+		bid_ws = bid_wb.active
+		bid_row = 1
 		
 		with open('cage_dict.json') as f:
 			cage_dict = json.load(f)
@@ -73,6 +82,12 @@ class Frames(object):
 		if ali_max_row == 2 and cage_dict.get(str(ali_ws['V2'].value),"0") != "0":
 			part_info = "P/N: " + str(ali_ws['X2'].value) + "<br> QTY: " + str(ali_ws['I2'].value) 
 			
+			bid_ws['A' + str(bid_row)] = str(ali_ws['W2'].value)
+			bid_ws['B' + str(bid_row)] = str(ali_ws['X2'].value)
+			bid_ws['C' + str(bid_row)] = str(ali_ws['I2'].value)
+			
+			bid_wb.save('Bid_Sheets/' + cur_date + '_Bid_Sheet.xlsx')
+			
 			if 'p' in cage_dict[str(ali_ws['V2'].value)]['options']:
 				part_info += " or next price break"
 				
@@ -84,12 +99,19 @@ class Frames(object):
 			
 		else:
 			for i in range(2,ali_max_row+1):
+				
+				cur_vendor_name = str(ali_ws['W' + str(i)].value)
 				cur_cage_code = str(ali_ws['V' + str(i)].value)
 				cur_PN = str(ali_ws['X' + str(i)].value)
 				cur_QTY = str(ali_ws['I' + str(i)].value)
 				
 				if i == 2 and cage_dict.get(cur_cage_code,"0") != "0":
 					part_info += "P/N: " + cur_PN + "<br> QTY: " + cur_QTY
+					
+					bid_ws['A' + str(bid_row)] = cur_vendor_name
+					bid_ws['B' + str(bid_row)] = cur_PN
+					bid_ws['C' + str(bid_row)] = cur_QTY
+					bid_row += 1
 					
 					if 'p' in cage_dict[cur_cage_code]['options']:
 						part_info += " or next price break"
@@ -100,6 +122,11 @@ class Frames(object):
 				elif cage_dict.get(cur_cage_code,"0") != "0":
 					if cur_cage_code == past_cage_code and 'g' in cage_dict[cur_cage_code]['options']:
 						part_info += "P/N: " + cur_PN + "<br> QTY: " + cur_QTY
+						
+						bid_ws['A' + str(bid_row)] = cur_vendor_name
+						bid_ws['B' + str(bid_row)] = cur_PN
+						bid_ws['C' + str(bid_row)] = cur_QTY
+						bid_row += 1
 						
 						if 'p' in cage_dict[cur_cage_code]['options']:
 							part_info += " or next price break"
@@ -115,6 +142,11 @@ class Frames(object):
 						past_cage_code = cur_cage_code
 						part_info = "P/N: " + cur_PN + "<br> QTY: " + cur_QTY
 						
+						bid_ws['A' + str(bid_row)] = cur_vendor_name
+						bid_ws['B' + str(bid_row)] = cur_PN
+						bid_ws['C' + str(bid_row)] = cur_QTY
+						bid_row += 1
+						
 						if 'p' in cage_dict[cur_cage_code]['options']:
 							part_info += " or next price break"
 						
@@ -125,18 +157,6 @@ class Frames(object):
 						to_address = cage_dict[past_cage_code]['email']
 						message_list.append((sub_message,to_address))
 						
-						part_info = "P/N: " + cur_PN + "<br> QTY: " + cur_QTY
-						
-						if 'p' in cage_dict[cur_cage_code]['options']:
-							part_info += " or next price break"
-							
-						part_info += "<br><br>"
-						
-						sub_message = email_body.substitute(PART_INFO = part_info)
-						to_address = cage_dict[cur_cage_code]['email']
-						message_list.append((sub_message,to_address))
-						
-						
 				elif part_info != "":
 					sub_message = email_body.substitute(PART_INFO = part_info)
 					to_address = cage_dict[past_cage_code]['email']
@@ -144,6 +164,8 @@ class Frames(object):
 					
 					part_info = ""
 					past_cage_code = cur_cage_code
+					
+		bid_wb.save('Bid_Sheets/' + cur_date + '_Bid_Sheet.xlsx')
 		
 		count = {'value': 0}
 	
@@ -154,8 +176,8 @@ class Frames(object):
 		w = 500
 		h = 600
 		
-		x = (self.ws/16) - (w/8)
-		y = (self.hs/16) - (h/16)
+		x = (self.ws/4) + 20
+		y = (self.hs/4) + 20
 		
 		t.geometry('%dx%d+%d+%d' % (w,h,x,y))
 		
@@ -195,7 +217,7 @@ class Frames(object):
 				msgBody = MIMEMultipart()
 				msg.attach(msgBody)
 
-				msgBody.attach(MIMEText("TO: " + message_list[count['value']][1] + "<br>" + message_list[count['value']][0],'html'))
+				msgBody.attach(MIMEText(message_list[count['value']][0],'html'))
 
 				fp = open('logo.png','rb')
 				img = MIMEImage(fp.read())
@@ -211,9 +233,9 @@ class Frames(object):
 				email_preview.delete('1.0',tk.END)
 				email_preview.insert("1.0","TO: " + message_list[count['value']][1] + "\n" + message_list[count['value']][0].replace("<br><br>","\n").replace("<br>","\n"))
 			else:
-				#self.send_emails()
+				self.send_emails()
 				t.destroy()
-				tk.messagebox.showinfo("Email Confirmation", "All " + str(len(self.email_list)) + " emails have been sent!")
+				tk.messagebox.showinfo("Email Confirmation", str(len(self.email_list)) + " emails have been sent!")
 		
 		confirm_button = tk.Button(user_frame,text="Yes",command=lambda: confirm_email(True))
 		confirm_button.grid(row=0,column=1,sticky="w",padx=5)
@@ -221,44 +243,7 @@ class Frames(object):
 		reject_button = tk.Button(user_frame,text="No",command=lambda: confirm_email(False))
 		reject_button.grid(row=0,column=2,sticky="w",padx=5)
 		
-	def main_frame(self,root):
-		root.title("Westsim Engineering")
-		
-		self.ws = root.winfo_screenwidth()
-		self.hs = root.winfo_screenheight()
-		
-		w = 500
-		h = 300
-		
-		x = (self.ws/2) - (w/2)
-		y = (self.hs/2) - (h/2)
-		
-		root.geometry('%dx%d+%d+%d' % (w,h,x,y))
-		
-		frame = tk.Frame(root)
-		frame.config(bg="white")
-		
-		rows = 0
-		while rows < 50:
-			frame.rowconfigure(rows,weight=1)
-			frame.columnconfigure(rows,weight=1)
-			rows += 1
-			
-		frame.pack(side=tk.LEFT,anchor="nw")
-		
-		canvas = tk.Canvas(frame,width=99,height=39)
-		canvas.grid(row=0,column=0)
-		img = tk.PhotoImage(file="logo.gif")
-		canvas.image = img
-		canvas.create_image(0,0, anchor="nw", image=img)
-		
-		test_button = tk.Button(frame,text="Send Quote Emails",command = self.sub_window)
-		test_button.grid(row=1,column=0,padx=10,pady=10)
-
-		another_button = tk.Button(frame,text="Close",fg="red",command=quit)
-		another_button.grid(row=1,column=1,padx=10,pady=10)
-		
-	def sub_window(self):
+	def email_window(self):
 	
 		t = tk.Toplevel()
 		t.title("Send Quote Emails")
@@ -266,8 +251,8 @@ class Frames(object):
 		w = 400
 		h = 125
 		
-		x = (self.ws/16) - (w/8)
-		y = (self.hs/16) - (h/16)
+		x = (self.ws/4) + 20
+		y = (self.hs/4) + 20
 		
 		t.geometry('%dx%d+%d+%d' % (w,h,x,y))
 		
@@ -293,9 +278,3 @@ class Frames(object):
 		browse_button = tk.Button(t, text="Browse", command = browse_function)
 		browse_button.grid(row=1,column=1,padx=5,sticky="w")
 		
-
-	
-root = tk.Tk()
-app = Frames()
-app.main_frame(root)
-root.mainloop()
