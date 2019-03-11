@@ -1,5 +1,5 @@
-# https://stackoverflow.com/questions/15306631/how-do-i-create-child-windows-with-python-tkinter
-# https://medium.freecodecamp.org/send-emails-using-code-4fcea9df63f - how to send emails automatically
+# https://medium.com/dreamcatcher-its-blog/making-an-stand-alone-executable-from-a-python-script-using-pyinstaller-d1df9170e263
+# ^ how to make executable -- need to do at Westsim office
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import messagebox
@@ -34,8 +34,9 @@ class Frames(object):
 
 	def __init__(self):
 		self.ali_sheet_name = tk.StringVar()
-		self.ali_sheet_name.set("default value")
 		self.email_list = []
+		self.ws = 0
+		self.hs = 0
 		
 	def read_template(self,filename):
 		with open(filename, 'r',) as template_file:
@@ -149,7 +150,15 @@ class Frames(object):
 		prev_window.destroy()
 		t = tk.Toplevel()
 		t.title("Email Confirmation")
-		t.geometry('500x600')
+		
+		w = 500
+		h = 600
+		
+		x = (self.ws/16) - (w/8)
+		y = (self.hs/16) - (h/16)
+		
+		t.geometry('%dx%d+%d+%d' % (w,h,x,y))
+		
 		t.rowconfigure(0,weight=1)
 		t.columnconfigure(0,weight=1)
 		
@@ -167,29 +176,34 @@ class Frames(object):
 		
 		scroll.config(command=email_preview.yview)
 		
-		confirmation_label = tk.Label(t,text="Does this email look correct?")
-		confirmation_label.grid(row=1,column=0,sticky="w",padx=5)
+		user_frame = tk.Frame(t)
+		user_frame.grid(row=1,column=0,sticky="sw",padx=5,pady=5)
 		
-		def confirm_email():
-			msg = MIMEMultipart('related')
+		confirmation_label = tk.Label(user_frame,text="Does this email look correct?")
+		confirmation_label.grid(row=0,column=0,sticky="w")
+		
+		def confirm_email(cleared):
+		
+			if cleared:
+				msg = MIMEMultipart('related')
 
-			msg['From'] = MY_ADDRESS
-			# msg['To'] = message_list[count['value']][1]
-			msg['To'] = "k.cook2499@gmail.com"
-			msg['Subject'] = "Quote"
+				msg['From'] = MY_ADDRESS
+				# msg['To'] = message_list[count['value']][1]
+				msg['To'] = "k.cook2499@gmail.com"
+				msg['Subject'] = "Quote"
 
-			msgBody = MIMEMultipart()
-			msg.attach(msgBody)
+				msgBody = MIMEMultipart()
+				msg.attach(msgBody)
 
-			msgBody.attach(MIMEText("TO: " + message_list[count['value']][1] + "<br>" + message_list[count['value']][0],'html'))
+				msgBody.attach(MIMEText("TO: " + message_list[count['value']][1] + "<br>" + message_list[count['value']][0],'html'))
 
-			fp = open('logo.png','rb')
-			img = MIMEImage(fp.read())
-			fp.close()
-			img.add_header('Content-ID', '<logo>')
-			msg.attach(img)
-			
-			self.email_list.append(msg)
+				fp = open('logo.png','rb')
+				img = MIMEImage(fp.read())
+				fp.close()
+				img.add_header('Content-ID', '<logo>')
+				msg.attach(img)
+				
+				self.email_list.append(msg)
 			
 			count['value'] += 1
 			
@@ -197,16 +211,29 @@ class Frames(object):
 				email_preview.delete('1.0',tk.END)
 				email_preview.insert("1.0","TO: " + message_list[count['value']][1] + "\n" + message_list[count['value']][0].replace("<br><br>","\n").replace("<br>","\n"))
 			else:
-				self.send_emails()
+				#self.send_emails()
 				t.destroy()
-				tk.tkMessageBox.showinfo("Email Confirmation", "All " + str(len(self.email_list)) + " emails have been sent!")
+				tk.messagebox.showinfo("Email Confirmation", "All " + str(len(self.email_list)) + " emails have been sent!")
 		
-		confirm_button = tk.Button(t,text="Yes",command = confirm_email)
-		confirm_button.grid(row=2,column=0,stick="w",padx=5)
+		confirm_button = tk.Button(user_frame,text="Yes",command=lambda: confirm_email(True))
+		confirm_button.grid(row=0,column=1,sticky="w",padx=5)
+		
+		reject_button = tk.Button(user_frame,text="No",command=lambda: confirm_email(False))
+		reject_button.grid(row=0,column=2,sticky="w",padx=5)
 		
 	def main_frame(self,root):
 		root.title("Westsim Engineering")
-		root.geometry('500x300')
+		
+		self.ws = root.winfo_screenwidth()
+		self.hs = root.winfo_screenheight()
+		
+		w = 500
+		h = 300
+		
+		x = (self.ws/2) - (w/2)
+		y = (self.hs/2) - (h/2)
+		
+		root.geometry('%dx%d+%d+%d' % (w,h,x,y))
 		
 		frame = tk.Frame(root)
 		frame.config(bg="white")
@@ -225,19 +252,24 @@ class Frames(object):
 		canvas.image = img
 		canvas.create_image(0,0, anchor="nw", image=img)
 		
-		test_button = tk.Button(frame,text="Open a new window!",fg="blue",command = self.sub_window)
+		test_button = tk.Button(frame,text="Send Quote Emails",command = self.sub_window)
 		test_button.grid(row=1,column=0,padx=10,pady=10)
 
-		another_button = tk.Button(frame,text="Goodbye!",command=quit)
+		another_button = tk.Button(frame,text="Close",fg="red",command=quit)
 		another_button.grid(row=1,column=1,padx=10,pady=10)
-		
-		alert_test = tk.Button(frame,text="Let's open an alert window!",command=lambda: tk.messagebox.showinfo(("Email Confirmation", "This is a test alert!")))
 		
 	def sub_window(self):
 	
 		t = tk.Toplevel()
-		t.title("Sub-window")
-		t.geometry('400x200')
+		t.title("Send Quote Emails")
+		
+		w = 400
+		h = 125
+		
+		x = (self.ws/16) - (w/8)
+		y = (self.hs/16) - (h/16)
+		
+		t.geometry('%dx%d+%d+%d' % (w,h,x,y))
 		
 		rows = 0
 		while rows < 50:
