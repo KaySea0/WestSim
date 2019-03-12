@@ -9,9 +9,9 @@ class WS_BidSheet(object):
 		self.sheet_names = os.listdir('Bid_Sheets')
 		self.frame = None
 		self.canvas = None
-		self.sheet_name = tk.StringVar()
 		self.scroll = None
 		self.cur_wb = None
+		self.sheet_name = tk.StringVar()
 		
 	def submit_info(self,row,text,window):
 		cur_ws = self.cur_wb.active
@@ -20,7 +20,6 @@ class WS_BidSheet(object):
 		window.destroy()
 	
 	def show_info(self,row):
-		# pass
 		cur_ws = self.cur_wb.active
 		
 		def save_info(text):
@@ -55,7 +54,7 @@ class WS_BidSheet(object):
 		user_frame.grid(row=1,column=0,sticky="sw",padx=5,pady=5)
 		
 		submit_button = tk.Button(user_frame,text="Save/Close Window",command=lambda: self.submit_info(row,info_text.get("1.0",tk.END),info_window))
-		submit_button.grid(row=1,column=0,sticky="w")
+		submit_button.grid(row=1,column=0,sticky="n",padx=80)
 		
 	def change_view(self, *args):
 		if self.frame is not None:

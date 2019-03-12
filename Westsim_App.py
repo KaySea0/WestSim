@@ -44,11 +44,11 @@ class Westsim_App(object):
 		email_button = tk.Button(frame,text="Send Quote Emails",command = self.WS_Email.email_window)
 		email_button.grid(row=1,column=0,padx=10,pady=10)
 		
-		test_button = tk.Button(frame,text="Test Name Generation",command = self.WS_BidSheet.bid_sheet_window)
-		test_button.grid(row=2,column=0,padx=10,pady=10)
+		test_button = tk.Button(frame,text="Open Bid Sheets",command = self.WS_BidSheet.bid_sheet_window)
+		test_button.grid(row=1,column=1,padx=10,pady=10)
 
 		close_button = tk.Button(frame,text="Close",fg="red",command=quit)
-		close_button.grid(row=1,column=1,padx=10,pady=10)
+		close_button.grid(row=2,column=0,padx=10,pady=10)
 
 if __name__ == '__main__':		
 	root = tk.Tk()
