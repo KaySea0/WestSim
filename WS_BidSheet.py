@@ -1,4 +1,3 @@
-# https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter/49325719#49325719
 import tkinter as tk
 import os
 import openpyxl
@@ -6,25 +5,45 @@ import openpyxl
 class WS_BidSheet(object):
 	
 	def __init__(self):
-		self.sheet_names = os.listdir('Bid_Sheets')
-		self.frame = None
-		self.canvas = None
-		self.scroll = None
-		self.cur_wb = None
-		self.sheet_name = tk.StringVar()
-		
+	
+		self.sheet_names = os.listdir('Bid_Sheets') # list of all bid sheets in folder
+		self.frame = None # bid sheet frame that switches as different dates are selected
+		self.canvas = None # main canvas that houses bid sheet frame
+		self.scroll = None # scrollbar that controls canvas
+		self.cur_wb = None # workbook of currently selected bid sheet
+		self.sheet_name = tk.StringVar() # name of currently selected bid sheet
+	
+	# # #
+	# Method: submit_info
+	# Input:
+	#   row - row of current bid sheet that is being modified in notebook portion
+	#   text - notes that is grabbed from spreadsheet / edited by user
+	#   window - notepad window
+	# Utility:
+	#   Take text from notepad portion, update & save bid sheet, and destroy window
+	# # #
 	def submit_info(self,row,text,window):
+		
+		# get current sheet and save data to correct cell
 		cur_ws = self.cur_wb.active
 		cur_ws['D'+str(row)] = text
 		self.cur_wb.save('Bid_Sheets/' + self.sheet_name.get())
+		
+		# close notepad window
 		window.destroy()
 	
+	# # #
+	# Method: show_info
+	# Input:
+	#   row - row of current bid sheet to display info of
+	# Utility:
+	#   Open 'notepad' window that displays info of selected contract to aid in bidding. Allows user to edit info as quotes are submitted.
+	# # #
 	def show_info(self,row):
-		cur_ws = self.cur_wb.active
+	
+		cur_ws = self.cur_wb.active # get current bid sheet
 		
-		def save_info(text):
-			cur_ws['D'+str(row)] = text
-		
+		# if there is info for the certain selection, pull it for viewing
 		if cur_ws['D'+str(row)].value:
 			info = cur_ws['D'+str(row)].value
 		else:
