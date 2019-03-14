@@ -8,7 +8,7 @@ class Westsim_App(object):
 	
 	def __init__(self):
 		
-		self.config_dict = json.load(open('config_dict.json'))
+		self.config_dict = None
 		
 		self.WS_Email = WS_Email()
 		self.WS_BidSheet = WS_BidSheet()

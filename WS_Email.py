@@ -1,5 +1,3 @@
-# https://medium.com/dreamcatcher-its-blog/making-an-stand-alone-executable-from-a-python-script-using-pyinstaller-d1df9170e263
-# ^ how to make executable -- need to do at Westsim office
 import tkinter as tk
 import openpyxl
 import smtplib
