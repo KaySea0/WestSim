@@ -1,9 +1,11 @@
 # https://stackoverflow.com/questions/31836104/pyinstaller-and-onefile-how-to-include-an-image-in-the-exe-file
+# https://stackoverflow.com/questions/48134269/python-pyinstaller-bundle-image-in-gui-to-onefile-exe
 import tkinter as tk
 from WS_Email import WS_Email
 from WS_BidSheet import WS_BidSheet
 from WS_Config import WS_Config
 import json
+import os
 
 class Westsim_App(object):
 	

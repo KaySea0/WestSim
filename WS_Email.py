@@ -18,6 +18,8 @@ MY_PASSWORD = "Sukkur%%1798"
 
 class WS_Email(object):
 
+	
+
 	def __init__(self):
 	
 		self.ali_sheet_name = tk.StringVar() # ALICORP workbook name that is used to create email list
@@ -285,7 +287,8 @@ class WS_Email(object):
 				msgBody.attach(MIMEText(message_list[count['value']][0],'html'))
 
 				# load company logo and reference in email so that it shows up in signature
-				fp = open('logo.png','rb')
+				fp = self.image
+				# fp = open('logo.png','rb')
 				img = MIMEImage(fp.read())
 				fp.close()
 				img.add_header('Content-ID', '<logo>')
