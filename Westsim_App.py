@@ -1,3 +1,4 @@
+# https://stackoverflow.com/questions/31836104/pyinstaller-and-onefile-how-to-include-an-image-in-the-exe-file
 import tkinter as tk
 from WS_Email import WS_Email
 from WS_BidSheet import WS_BidSheet
