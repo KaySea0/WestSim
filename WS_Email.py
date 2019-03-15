@@ -9,6 +9,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from string import Template
+from pathlib import Path
 
 MY_ADDRESS = "info@westsiminc.com"
 MY_PASSWORD = "Sukkur%%1798"
@@ -79,6 +80,13 @@ class WS_Email(object):
 		cur_DT = str(datetime.datetime.now())
 		cur_date = cur_DT[:cur_DT.find(' ')]
 		
+		# open config dict and set reference to bid sheet folder
+		t_path = Path('config_dict.json')
+		bid_folder = None
+		if t_path.is_file():
+			t_dict = json.load(open('config_dict.json'))
+			bid_folder = t_dict['bid']
+			
 		# open new bid sheet and initialize required vars for editing
 		bid_wb = openpyxl.Workbook()
 		bid_ws = bid_wb.active
@@ -115,7 +123,7 @@ class WS_Email(object):
 			bid_ws['C' + str(bid_row)] = str(ali_ws['I2'].value)
 			
 			# save bid sheet
-			bid_wb.save('Bid_Sheets/' + cur_date + '_Bid_Sheet.xlsx')
+			bid_wb.save(bid_folder + '/' + cur_date + '_Bid_Sheet.xlsx')
 			
 			# if vendor allows for price break, add this request to quote
 			if 'p' in cage_dict[str(ali_ws['V2'].value)]['options']:
@@ -212,7 +220,7 @@ class WS_Email(object):
 					past_cage_code = cur_cage_code
 					
 		# save bid sheet once done running through ALICORP sheet
-		bid_wb.save('Bid_Sheets/' + cur_date + '_Bid_Sheet.xlsx')
+		bid_wb.save(bid_folder + '/' + cur_date + '_Bid_Sheet.xlsx')
 		
 		count = {'value': 0} # keep track of where in message_list user is when validating
 	
@@ -285,14 +293,6 @@ class WS_Email(object):
 
 				# enter email text into body
 				msgBody.attach(MIMEText(message_list[count['value']][0],'html'))
-
-				# load company logo and reference in email so that it shows up in signature
-				fp = self.image
-				# fp = open('logo.png','rb')
-				img = MIMEImage(fp.read())
-				fp.close()
-				img.add_header('Content-ID', '<logo>')
-				msg.attach(img)
 				
 				# add email to validated list
 				self.email_list.append(msg)

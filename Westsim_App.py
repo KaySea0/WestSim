@@ -1,11 +1,11 @@
-# https://stackoverflow.com/questions/31836104/pyinstaller-and-onefile-how-to-include-an-image-in-the-exe-file
-# https://stackoverflow.com/questions/48134269/python-pyinstaller-bundle-image-in-gui-to-onefile-exe
 import tkinter as tk
 from WS_Email import WS_Email
 from WS_BidSheet import WS_BidSheet
 from WS_Config import WS_Config
 import json
 import os
+import sys
+from myimages import *
 
 class Westsim_App(object):
 	
@@ -51,7 +51,7 @@ class Westsim_App(object):
 		
 		canvas = tk.Canvas(frame,width=99,height=39)
 		canvas.grid(row=0,column=0)
-		img = tk.PhotoImage(file="logo.gif")
+		img = tk.PhotoImage(data=logo_string)
 		canvas.image = img
 		canvas.create_image(0,0, anchor="nw", image=img)
 		
@@ -64,7 +64,7 @@ class Westsim_App(object):
 		config_button = tk.Button(frame,text="Config",command = self.WS_Config.config_window)
 		config_button.grid(row=2,column=0,padx=10,pady=10)
 
-		close_button = tk.Button(frame,text="Close",fg="red",command=quit)
+		close_button = tk.Button(frame,text="Close",fg="red",command=lambda: sys.exit())
 		close_button.grid(row=2,column=1,padx=10,pady=10)
 
 if __name__ == '__main__':		
