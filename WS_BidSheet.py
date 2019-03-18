@@ -23,6 +23,7 @@ class WS_BidSheet(object):
 	def update_list(self, folder):
 		self.bid_folder = folder
 		self.sheet_names = os.listdir(self.bid_folder)
+		# del self.sheet_names[-1]
 		
 	# # #
 	# Method: submit_info

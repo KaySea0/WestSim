@@ -2,6 +2,7 @@ import tkinter as tk
 from WS_Email import WS_Email
 from WS_BidSheet import WS_BidSheet
 from WS_Config import WS_Config
+from WS_Contract import WS_Contract
 import json
 import os
 import sys
@@ -16,6 +17,7 @@ class Westsim_App(object):
 		self.WS_Email = WS_Email()
 		self.WS_BidSheet = WS_BidSheet()
 		self.WS_Config = WS_Config()
+		self.WS_Contract = WS_Contract()
 		self.ws = 0
 		self.hs = 0
 		
@@ -61,11 +63,14 @@ class Westsim_App(object):
 		bidsheet_button = tk.Button(frame,text="Open Bid Sheets",command= self.start_bid_sheet)
 		bidsheet_button.grid(row=1,column=1,padx=10,pady=10)
 		
+		contract_button = tk.Button(frame,text="Contract Management", command= self.WS_Contract.contract_window)
+		contract_button.grid(row=2,column=0,padx=10,pady=10)
+		
 		config_button = tk.Button(frame,text="Config",command = self.WS_Config.config_window)
-		config_button.grid(row=2,column=0,padx=10,pady=10)
+		config_button.grid(row=2,column=1,padx=10,pady=10)
 
 		close_button = tk.Button(frame,text="Close",fg="red",command=lambda: sys.exit())
-		close_button.grid(row=2,column=1,padx=10,pady=10)
+		close_button.grid(row=3,column=0,padx=10,pady=10)
 
 if __name__ == '__main__':		
 	root = tk.Tk()
