@@ -22,7 +22,7 @@ class WS_Config(object):
 			self.bid_var.set(self.config_dict["bid"])
 			self.cage_var.set(self.config_dict["cage"])
 			self.main_var.set(self.config_dict["main"])
-			self.contract_var.set(self.config_dict["contract"])
+			self.contract_var.set(self.config_dict["wip"])
 		else:
 			self.config_dict = {}
 			
@@ -39,8 +39,8 @@ class WS_Config(object):
 		self.main_var.set(self.config_dict['main'])
 		
 	def contract_browse(self):
-		self.config_dict['contract'] = filedialog.askopenfilename()
-		self.contract_var.set(self.config_dict['contract'])
+		self.config_dict['wip'] = filedialog.askopenfilename()
+		self.contract_var.set(self.config_dict['wip'])
 		
 	def save_config(self,t):
 		json_temp = json.dumps(self.config_dict)
