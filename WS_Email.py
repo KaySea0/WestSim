@@ -11,11 +11,11 @@ from email.mime.image import MIMEImage
 from string import Template
 from pathlib import Path
 
-MY_ADDRESS = "info@westsiminc.com"
-MY_PASSWORD = "Sukkur%%1798"
+# MY_ADDRESS = "info@westsiminc.com"
+# MY_PASSWORD = "Sukkur%%1798"
 
-# MY_ADDRESS = "ali.kalwar@westsiminc.com"
-# MY_PASSWORD = "Sukkur$$88"
+MY_ADDRESS = "ali.kalwar@westsiminc.com"
+MY_PASSWORD = "Sukkur$$88"
 
 class WS_Email(object):
 
@@ -283,8 +283,8 @@ class WS_Email(object):
 
 				# assign email properties
 				msg['From'] = MY_ADDRESS
-				# msg['To'] = message_list[count['value']][1]
-				msg['To'] = "k.cook2499@gmail.com"
+				msg['To'] = message_list[count['value']][1]
+				# msg['To'] = "k.cook2499@gmail.com"
 				msg['Subject'] = "Quote"
 
 				# attach body of email to message object

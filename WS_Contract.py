@@ -22,7 +22,7 @@ class WS_Contract(object):
 		main_ws['K'+str(next_row)] = var_list[3].get()
 		main_ws['D'+str(next_row)] = var_list[4].get()
 		main_ws['F'+str(next_row)] = var_list[6].get()
-		main_ws['H'+str(next_row)] = var_list[9].get()
+		main_ws['H'+str(next_row)] = var_list[10].get()
 		
 		self.main_wb.save(self.dict['main'])
 		
@@ -39,6 +39,7 @@ class WS_Contract(object):
 		wip_ws['H'+str(next_row)] = var_list[7].get()
 		wip_ws['I'+str(next_row)] = var_list[8].get()
 		wip_ws['J'+str(next_row)] = var_list[9].get()
+		wip_ws['K'+str(next_row)] = var_list[10].get()
 		
 		self.wip_wb.save(self.dict['wip'])
 		
@@ -46,11 +47,11 @@ class WS_Contract(object):
 		
 	def add_contract(self):
 		t = tk.Toplevel()
-		t.geometry('300x500')
+		t.geometry('350x500')
 		t.title("Add New Contract")
 		
 		varList = []
-		for i in range(0,10):
+		for i in range(0,11):
 			temp = tk.StringVar()
 			varList.append(temp)
 		
@@ -102,20 +103,26 @@ class WS_Contract(object):
 		pn_entry = tk.Entry(t, width=20, textvariable=varList[7])
 		pn_entry.grid(row=7, column=1, sticky="w", padx=10, pady=10)
 		
-		preservation_label = tk.Label(t, text="Preservation Method:")
-		preservation_label.grid(row=8, column=0, sticky="e", padx=10, pady=10)
+		unit_label = tk.Label(t, text="Unit Price:")
+		unit_label.grid(row=8, column=0, sticky="e", padx=10, pady=10)
 		
-		preservation_entry = tk.Entry(t, width=5, textvariable=varList[8])
-		preservation_entry.grid(row=8, column=1, sticky="w", padx=10, pady=10)
+		unit_entry = tk.Entry(t, width=10, textvariable=varList[8])
+		unit_entry.grid(row=8, column=1, sticky="w", padx=10, pady=10)
+		
+		preservation_label = tk.Label(t, text="Preservation Method:")
+		preservation_label.grid(row=9, column=0, sticky="e", padx=10, pady=10)
+		
+		preservation_entry = tk.Entry(t, width=5, textvariable=varList[9])
+		preservation_entry.grid(row=9, column=1, sticky="w", padx=10, pady=10)
 		
 		date_label = tk.Label(t, text="Due Date:")
-		date_label.grid(row=9, column=0, sticky="e", padx=10, pady=10)
+		date_label.grid(row=10, column=0, sticky="e", padx=10, pady=10)
 		
-		date_entry = tk.Entry(t, width=12, textvariable=varList[9])
-		date_entry.grid(row=9, column=1, sticky="w", padx=10, pady=10)
+		date_entry = tk.Entry(t, width=12, textvariable=varList[10])
+		date_entry.grid(row=10, column=1, sticky="w", padx=10, pady=10)
 		
 		submit_button = tk.Button(t, text="Submit Data", command=lambda: self.process_addition(varList,t))
-		submit_button.grid(row=10, column=1, sticky="w", padx=10, pady=10)
+		submit_button.grid(row=11, column=1, sticky="w", padx=10, pady=10)
 		
 	def contract_window(self):
 		main_window = tk.Toplevel()
