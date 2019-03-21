@@ -19,8 +19,6 @@ MY_PASSWORD = "Sukkur$$88"
 
 class WS_Email(object):
 
-	
-
 	def __init__(self):
 	
 		self.ali_sheet_name = tk.StringVar() # ALICORP workbook name that is used to create email list
@@ -70,6 +68,8 @@ class WS_Email(object):
 	#   (2) Have user run through all generated emails and confirm validity of each
 	# # #
 	def process_ali_sheet(self, prev_window):
+	
+		self.email_list.clear()
 	
 		# open selected ALICORP sheet to proper sheet
 		ali_wb = openpyxl.load_workbook(self.ali_sheet_name.get())
