@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 import json
 import openpyxl
 from pathlib import Path
@@ -11,6 +12,29 @@ class WS_Contract(object):
 		self.main_wb = None
 		self.wip_wb = None
 		self.dict = None
+		
+		self.PO_dict = None
+		self.company_list = None
+		self.current_company = tk.StringVar()
+		
+		self.PO_Vars = None
+		
+	def create_PO_dict(self):
+		cage_wb = openpyxl.load_workbook(self.dict['cage'])
+		cage_ws = cage_wb.active
+
+		self.PO_dict = {}
+		self.company_list = []
+		for row in cage_ws.iter_rows(min_row=2, values_only=True):
+			t_entry = {}
+			t_entry['line1'] = row[5] if row[5] != None else ""
+			t_entry['line2'] = row[6] if row[6] != None else ""
+			t_entry['line3'] = row[7] if row[7] != None else ""
+			t_entry['line4'] = row[8] if row[8] != None else ""
+			t_entry['line5'] = row[9] if row[9] != None else ""
+			
+			self.company_list.append(row[2])
+			self.PO_dict[row[2]] = t_entry
 		
 	def process_addition(self, var_list, window):
 		main_ws = self.main_wb['DLAORDERS']
@@ -44,6 +68,82 @@ class WS_Contract(object):
 		self.wip_wb.save(self.dict['wip'])
 		
 		window.destroy()
+		
+	def create_PO(self):
+		t = tk.Toplevel()
+		t.geometry('575x400')
+		t.title("PO Creation")
+		
+		self.PO_Vars = []
+		for i in range(0,13):
+			temp = tk.StringVar()
+			self.PO_Vars.append(temp)
+			
+		def combo_function(eventObject):
+			company_info = self.PO_dict[self.current_company.get()]
+			self.PO_Vars[0].set(company_info['line1'])
+			self.PO_Vars[1].set(company_info['line2'])
+			self.PO_Vars[2].set(company_info['line3'])
+			self.PO_Vars[3].set(company_info['line4'])
+			self.PO_Vars[4].set(company_info['line5'])
+		
+		company_menu = ttk.Combobox(t, textvariable=self.current_company, values=self.company_list)
+		company_menu.bind('<<ComboboxSelected>>', combo_function)
+		company_menu.grid(row=0, column=0, columnspan=2, sticky="nsew")
+		
+		company_label = tk.Label(t, text="Vendor Name:")
+		company_label.grid(row=1, column=0, sticky="w", padx=10, pady=10)
+		
+		company_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[0])
+		company_entry.grid(row=1, column=1, sticky="w", padx=10, pady=10)
+		
+		addr1_label = tk.Label(t, text="Address Line 1:")
+		addr1_label.grid(row=2, column=0, sticky="w", padx=10, pady=10)
+		
+		addr1_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[1])
+		addr1_entry.grid(row=2, column=1, sticky="w", padx=10, pady=10)
+		
+		addr2_label = tk.Label(t, text="Address Line 2:")
+		addr2_label.grid(row=3, column=0, sticky="w", padx=10, pady=10)
+		
+		addr2_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[2])
+		addr2_entry.grid(row=3, column=1, sticky="w", padx=10, pady=10)
+		
+		phone_label = tk.Label(t, text="Phone:")
+		phone_label.grid(row=4, column=0, sticky="w", padx=10, pady=10)
+		
+		phone_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[3])
+		phone_entry.grid(row=4, column=1, sticky="w", padx=10, pady=10)
+		
+		attention_label = tk.Label(t, text="Attention:")
+		attention_label.grid(row=5, column=0, sticky="w", padx=10, pady=10)
+		
+		attention_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[4])
+		attention_entry.grid(row=5, column=1, sticky="w", padx=10, pady=10)
+		
+		poNum_label = tk.Label(t, text="PO #:")
+		poNum_label.grid(row=1, column=2, sticky="w", padx=10, pady=10)
+		
+		poNum_entry = tk.Entry(t, width=10, textvariable=self.PO_Vars[5])
+		poNum_entry.grid(row=1, column=3, sticky="w", padx=10, pady=10)
+		
+		quote_label = tk.Label(t, text="Quote:")
+		quote_label.grid(row=2, column=2, sticky="w", padx=10, pady=10)
+		
+		quote_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[6])
+		quote_entry.grid(row=2, column=3, sticky="w", padx=10, pady=10)
+		
+		delivery_label = tk.Label(t, text="Delivery:")
+		delivery_label.grid(row=3, column=2, sticky="w", padx=10, pady=10)
+		
+		delivery_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[7])
+		delivery_entry.grid(row=3, column=3, sticky="w", padx=10, pady=10)
+		
+		terms_label = tk.Label(t, text="Terms:")
+		terms_label.grid(row=4, column=2, sticky="w", padx=10, pady=10)
+		
+		terms_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[8])
+		terms_entry.grid(row=4, column=3, sticky="w", padx=10, pady=10)
 		
 	def add_contract(self):
 		t = tk.Toplevel()
@@ -134,9 +234,13 @@ class WS_Contract(object):
 			self.dict = json.load(open('config_dict.json'))
 			self.main_wb = openpyxl.load_workbook(self.dict['main'])
 			self.wip_wb = openpyxl.load_workbook(self.dict['wip'])
+			self.create_PO_dict()
 		
 		add_button = tk.Button(main_window, text="Add New Contract", command= self.add_contract)
 		add_button.grid(row=0, column=0, padx=10, pady=10)
+		
+		create_PO_button = tk.Button(main_window, text="Create PO", command= self.create_PO)
+		create_PO_button.grid(row=1, column=0, padx=10, pady=10)
 		
 		
 		
