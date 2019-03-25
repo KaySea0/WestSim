@@ -2,9 +2,13 @@ import tkinter as tk
 from tkinter import ttk
 import json
 import openpyxl
+import os
 from pathlib import Path
+from tkinter import filedialog
+from myimages import *
 
 # if no preservation method is given / is special mil spec, put "n/a" for method in display
+# maybe add way to select multiple contracts that apply to certain PO
 
 class WS_Contract(object):
 
@@ -17,9 +21,15 @@ class WS_Contract(object):
 		self.company_list = None
 		self.current_company = tk.StringVar()
 		
-		self.PO_Vars = None
+		self.wip_dict = None
+		self.wip_list = None
+		self.current_contract = tk.StringVar()
 		
-	def create_PO_dict(self):
+		self.PO_Vars = None
+		self.check_var = tk.IntVar()
+		self.po_num = None
+		
+	def create_dicts(self):
 		cage_wb = openpyxl.load_workbook(self.dict['cage'])
 		cage_ws = cage_wb.active
 
@@ -35,6 +45,54 @@ class WS_Contract(object):
 			
 			self.company_list.append(row[2])
 			self.PO_dict[row[2]] = t_entry
+			
+		wip_ws = self.wip_wb.active
+		self.wip_dict = {}
+		self.wip_list = []
+		for row in wip_ws.iter_rows(min_row=2, values_only=True):
+			t_entry = {}
+			t_entry['pn'] = row[7]
+			t_entry['nsn'] = row[4]
+			t_entry['description'] = row[5]
+			t_entry['qty'] = row[2]
+			
+			self.wip_list.append(row[1])
+			self.wip_dict[row[1]] = t_entry
+			
+	def save_PO(self):
+		f = filedialog.asksaveasfile(mode='w', initialfile="PurchaseOrder - " + self.PO_Vars[5].get(), filetypes=(("Excel file", "*.xlsx"),))
+		
+		po_template = openpyxl.load_workbook('PO_Template.xlsx')
+		po_ws = po_template.active
+		
+		try: 
+			ws_image = openpyxl.drawing.image.Image('logo.png')
+			ws_image.anchor(po_ws.cell('B2'))
+			po_ws.add_image(ws_image)
+		except:
+			pass
+		
+		po_ws['B10'] = self.PO_Vars[0].get()
+		po_ws['B11'] = self.PO_Vars[1].get()
+		po_ws['B12'] = self.PO_Vars[2].get()
+		po_ws['B13'] = self.PO_Vars[3].get()
+		po_ws['B14'] = self.PO_Vars[4].get()
+		po_ws['G10'] = "PO: {}".format(self.PO_Vars[5].get())
+		po_ws['G12'] = "Quote: {}".format(self.PO_Vars[6].get())
+		po_ws['G13'] = "Delivery: {}".format(self.PO_Vars[7].get())
+		po_ws['G14'] = "Terms: {}".format(self.PO_Vars[8].get())
+		po_ws['C18'] = "P/N: {}".format(self.PO_Vars[9].get())
+		po_ws['C19'] = "NSN: {}".format(self.PO_Vars[10].get())
+		po_ws['C20'] = self.PO_Vars[11].get()
+		po_ws['E18'] = self.PO_Vars[12].get()
+		po_ws['G18'] = self.PO_Vars[13].get()
+		
+		if self.check_var.get() == 1:
+			po_ws['B46'] = "UPS Ground account no: 2Y642X"
+			
+		po_template.save(f.name+".xlsx")
+		f.close()
+		os.remove(f.name)
 		
 	def process_addition(self, var_list, window):
 		main_ws = self.main_wb['DLAORDERS']
@@ -71,25 +129,35 @@ class WS_Contract(object):
 		
 	def create_PO(self):
 		t = tk.Toplevel()
-		t.geometry('575x400')
+		t.geometry('640x450')
 		t.title("PO Creation")
 		
+		self.current_company.set("")
+		self.current_contract.set("")
+		
 		self.PO_Vars = []
-		for i in range(0,13):
+		for i in range(0,14):
 			temp = tk.StringVar()
 			self.PO_Vars.append(temp)
 			
-		def combo_function(eventObject):
+		def company_function(eventObject):
 			company_info = self.PO_dict[self.current_company.get()]
 			self.PO_Vars[0].set(company_info['line1'])
 			self.PO_Vars[1].set(company_info['line2'])
 			self.PO_Vars[2].set(company_info['line3'])
 			self.PO_Vars[3].set(company_info['line4'])
 			self.PO_Vars[4].set(company_info['line5'])
+			
+		def contract_function(eventObject):
+			contract_info = self.wip_dict[self.current_contract.get()]
+			self.PO_Vars[9].set(contract_info['pn'])
+			self.PO_Vars[10].set(contract_info['nsn'])
+			self.PO_Vars[11].set(contract_info['description'])
+			self.PO_Vars[12].set(contract_info['qty'])
 		
 		company_menu = ttk.Combobox(t, textvariable=self.current_company, values=self.company_list)
-		company_menu.bind('<<ComboboxSelected>>', combo_function)
-		company_menu.grid(row=0, column=0, columnspan=2, sticky="nsew")
+		company_menu.bind('<<ComboboxSelected>>', company_function)
+		company_menu.grid(row=0, column=0, columnspan=2, sticky="new", padx=10, pady=10)
 		
 		company_label = tk.Label(t, text="Vendor Name:")
 		company_label.grid(row=1, column=0, sticky="w", padx=10, pady=10)
@@ -121,6 +189,9 @@ class WS_Contract(object):
 		attention_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[4])
 		attention_entry.grid(row=5, column=1, sticky="w", padx=10, pady=10)
 		
+		UPS_check = tk.Checkbutton(t, text="Include UPS Ground account #", variable=self.check_var)
+		UPS_check.grid(row=0, column=2, columnspan=2, padx=10, pady=10)
+		
 		poNum_label = tk.Label(t, text="PO #:")
 		poNum_label.grid(row=1, column=2, sticky="w", padx=10, pady=10)
 		
@@ -144,6 +215,43 @@ class WS_Contract(object):
 		
 		terms_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[8])
 		terms_entry.grid(row=4, column=3, sticky="w", padx=10, pady=10)
+		
+		unit_label = tk.Label(t, text="Unit Price:")
+		unit_label.grid(row=5, column=2, sticky="w", padx=10, pady=10)
+		
+		unit_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[13])
+		unit_entry.grid(row=5, column=3, sticky="w", padx=10, pady=10)
+		
+		contract_menu = ttk.Combobox(t, textvariable=self.current_contract, values=self.wip_list)
+		contract_menu.bind('<<ComboboxSelected>>', contract_function)
+		contract_menu.grid(row=6, column=0, columnspan=2, sticky="new", padx=10, pady=10)
+		
+		pn_label = tk.Label(t, text="P/N:")
+		pn_label.grid(row=7, column=0, sticky="w", padx=10, pady=10)
+		
+		pn_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[9])
+		pn_entry.grid(row=7, column=1, sticky="w", padx=10, pady=10)
+		
+		nsn_label = tk.Label(t, text="NSN:")
+		nsn_label.grid(row=8, column=0, sticky="w", padx=10, pady=10)
+		
+		nsn_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[10])
+		nsn_entry.grid(row=8, column=1, sticky="w", padx=10, pady=10)
+		
+		descr_label = tk.Label(t, text="Part Description:")
+		descr_label.grid(row=7, column=2, sticky="w", padx=10, pady=10)
+		
+		descr_entry = tk.Entry(t, width=30, textvariable=self.PO_Vars[11])
+		descr_entry.grid(row=7, column=3, sticky="w", padx=10, pady=10)
+		
+		qty_label = tk.Label(t, text="QTY:")
+		qty_label.grid(row=8, column=2, sticky="w", padx=10, pady=10)
+		
+		qty_entry=tk.Entry(t, width=30, textvariable=self.PO_Vars[12])
+		qty_entry.grid(row=8, column=3, sticky="w", padx=10, pady=10)
+		
+		submit_btn = tk.Button(t, text="Create PO", command=self.save_PO)
+		submit_btn.grid(row=9, column=3, sticky="e", padx=10, pady=10)
 		
 	def add_contract(self):
 		t = tk.Toplevel()
@@ -234,7 +342,7 @@ class WS_Contract(object):
 			self.dict = json.load(open('config_dict.json'))
 			self.main_wb = openpyxl.load_workbook(self.dict['main'])
 			self.wip_wb = openpyxl.load_workbook(self.dict['wip'])
-			self.create_PO_dict()
+			self.create_dicts()
 		
 		add_button = tk.Button(main_window, text="Add New Contract", command= self.add_contract)
 		add_button.grid(row=0, column=0, padx=10, pady=10)
