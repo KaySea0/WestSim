@@ -3,9 +3,12 @@ from tkinter import ttk
 import json
 import openpyxl
 import os
+import datetime
 from pathlib import Path
 from tkinter import filedialog
 from myimages import *
+
+month_init = ["JA","FE","MR","AP","MY","JU","JY","AU","SE","OC","NV","DE"]
 
 # if no preservation method is given / is special mil spec, put "n/a" for method in display
 # maybe add way to select multiple contracts that apply to certain PO
@@ -24,6 +27,7 @@ class WS_Contract(object):
 		self.wip_dict = None
 		self.wip_list = None
 		self.current_contract = tk.StringVar()
+		self.current_contract_num = tk.IntVar()
 		
 		self.PO_Vars = None
 		self.check_var = tk.IntVar()
@@ -94,17 +98,25 @@ class WS_Contract(object):
 		f.close()
 		os.remove(f.name)
 		
+		main_ws = self.main_wb['DLAORDERS']
+		main_ws['I'+str(self.current_contract_num.get)] = self.PO_Vars[5].get()
+		
+		self.main_wb.save(self.dict['main'])
+		
 	def process_addition(self, var_list, window):
 		main_ws = self.main_wb['DLAORDERS']
 		next_row = main_ws.max_row+1
 		
+		last_num = main_ws['A'+str(main_ws.max_row)].value
+		
 		main_ws['G'+str(next_row)] = var_list[0].get()
 		main_ws['B'+str(next_row)] = var_list[1].get()
-		main_ws['E'+str(next_row)] = var_list[2].get()
-		main_ws['K'+str(next_row)] = var_list[3].get()
+		main_ws['E'+str(next_row)] = int(var_list[2].get())
+		main_ws['K'+str(next_row)] = float(var_list[3].get())
 		main_ws['D'+str(next_row)] = var_list[4].get()
 		main_ws['F'+str(next_row)] = var_list[6].get()
-		main_ws['H'+str(next_row)] = var_list[10].get()
+		main_ws['H'+str(next_row)] = var_list[9].get()
+		main_ws['A'+str(next_row)] = last_num+1
 		
 		self.main_wb.save(self.dict['main'])
 		
@@ -121,7 +133,6 @@ class WS_Contract(object):
 		wip_ws['H'+str(next_row)] = var_list[7].get()
 		wip_ws['I'+str(next_row)] = var_list[8].get()
 		wip_ws['J'+str(next_row)] = var_list[9].get()
-		wip_ws['K'+str(next_row)] = var_list[10].get()
 		
 		self.wip_wb.save(self.dict['wip'])
 		
@@ -134,6 +145,8 @@ class WS_Contract(object):
 		
 		self.current_company.set("")
 		self.current_contract.set("")
+		
+		main_ws = self.main_wb['DLAORDERS']
 		
 		self.PO_Vars = []
 		for i in range(0,14):
@@ -150,6 +163,23 @@ class WS_Contract(object):
 			
 		def contract_function(eventObject):
 			contract_info = self.wip_dict[self.current_contract.get()]
+			
+			contract_trace = main_ws.max_row
+			while(main_ws['B'+str(contract_trace)].value != self.current_contract.get()):
+				contract_trace -= 1
+				
+			contract_num = main_ws['A'+str(contract_trace)].value
+			self.current_contract_num.set(contract_num)
+			
+			while type(main_ws['B'+str(contract_trace)].value) != datetime.datetime:
+				contract_trace -= 1
+				
+			current_month = main_ws['B'+str(contract_trace)].value
+			po_time = str(month_init[current_month.month-1]) + str(current_month.year%100)
+			
+			po_num = po_time + str(contract_num)
+			
+			self.PO_Vars[5].set(po_num)
 			self.PO_Vars[9].set(contract_info['pn'])
 			self.PO_Vars[10].set(contract_info['nsn'])
 			self.PO_Vars[11].set(contract_info['description'])
@@ -255,11 +285,11 @@ class WS_Contract(object):
 		
 	def add_contract(self):
 		t = tk.Toplevel()
-		t.geometry('350x500')
+		t.geometry('350x475')
 		t.title("Add New Contract")
 		
 		varList = []
-		for i in range(0,11):
+		for i in range(0,10):
 			temp = tk.StringVar()
 			varList.append(temp)
 		
@@ -311,26 +341,20 @@ class WS_Contract(object):
 		pn_entry = tk.Entry(t, width=20, textvariable=varList[7])
 		pn_entry.grid(row=7, column=1, sticky="w", padx=10, pady=10)
 		
-		unit_label = tk.Label(t, text="Unit Price:")
-		unit_label.grid(row=8, column=0, sticky="e", padx=10, pady=10)
-		
-		unit_entry = tk.Entry(t, width=10, textvariable=varList[8])
-		unit_entry.grid(row=8, column=1, sticky="w", padx=10, pady=10)
-		
 		preservation_label = tk.Label(t, text="Preservation Method:")
-		preservation_label.grid(row=9, column=0, sticky="e", padx=10, pady=10)
+		preservation_label.grid(row=8, column=0, sticky="e", padx=10, pady=10)
 		
-		preservation_entry = tk.Entry(t, width=5, textvariable=varList[9])
-		preservation_entry.grid(row=9, column=1, sticky="w", padx=10, pady=10)
+		preservation_entry = tk.Entry(t, width=5, textvariable=varList[8])
+		preservation_entry.grid(row=8, column=1, sticky="w", padx=10, pady=10)
 		
 		date_label = tk.Label(t, text="Due Date:")
-		date_label.grid(row=10, column=0, sticky="e", padx=10, pady=10)
+		date_label.grid(row=9, column=0, sticky="e", padx=10, pady=10)
 		
-		date_entry = tk.Entry(t, width=12, textvariable=varList[10])
-		date_entry.grid(row=10, column=1, sticky="w", padx=10, pady=10)
+		date_entry = tk.Entry(t, width=12, textvariable=varList[9])
+		date_entry.grid(row=9, column=1, sticky="w", padx=10, pady=10)
 		
 		submit_button = tk.Button(t, text="Submit Data", command=lambda: self.process_addition(varList,t))
-		submit_button.grid(row=11, column=1, sticky="w", padx=10, pady=10)
+		submit_button.grid(row=10, column=1, sticky="w", padx=10, pady=10)
 		
 	def contract_window(self):
 		main_window = tk.Toplevel()
