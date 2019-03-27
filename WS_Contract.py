@@ -112,7 +112,7 @@ class WS_Contract(object):
 		main_ws['G'+str(next_row)] = var_list[0].get()
 		main_ws['B'+str(next_row)] = var_list[1].get()
 		main_ws['E'+str(next_row)] = int(var_list[2].get())
-		main_ws['K'+str(next_row)] = float(var_list[3].get())
+		main_ws['K'+str(next_row)] = var_list[3].get()
 		main_ws['D'+str(next_row)] = var_list[4].get()
 		main_ws['F'+str(next_row)] = var_list[6].get()
 		main_ws['H'+str(next_row)] = var_list[9].get()
