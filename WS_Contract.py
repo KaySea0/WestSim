@@ -4,9 +4,17 @@ import json
 import openpyxl
 import os
 import datetime
+import smtplib
 from pathlib import Path
 from tkinter import filedialog
+from tkinter import messagebox
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+from string import Template
 from myimages import *
+from settings import *
 
 month_init = ["JA","FE","MR","AP","MY","JU","JY","AU","SE","OC","NV","DE"]
 
@@ -46,6 +54,7 @@ class WS_Contract(object):
 			t_entry['line3'] = row[7] if row[7] != None else ""
 			t_entry['line4'] = row[8] if row[8] != None else ""
 			t_entry['line5'] = row[9] if row[9] != None else ""
+			t_entry['email'] = row[4] if row[4] != None else ""
 			
 			self.company_list.append(row[2])
 			self.PO_dict[row[2]] = t_entry
@@ -63,7 +72,7 @@ class WS_Contract(object):
 			self.wip_list.append(row[1])
 			self.wip_dict[row[1]] = t_entry
 			
-	def save_PO(self):
+	def save_PO(self, window):
 		f = filedialog.asksaveasfile(mode='w', initialfile="PurchaseOrder - " + self.PO_Vars[5].get(), filetypes=(("Excel file", "*.xlsx"),))
 		
 		po_template = openpyxl.load_workbook('PO_Template.xlsx')
@@ -102,6 +111,10 @@ class WS_Contract(object):
 		main_ws['I'+str(self.current_contract_num.get)] = self.PO_Vars[5].get()
 		
 		self.main_wb.save(self.dict['main'])
+		
+		tk.messagebox.showinfo("PO Created", "{} has been saved.".format(f.name))
+		
+		window.destroy()
 		
 	def process_addition(self, var_list, window):
 		main_ws = self.main_wb['DLAORDERS']
@@ -280,7 +293,7 @@ class WS_Contract(object):
 		qty_entry=tk.Entry(t, width=30, textvariable=self.PO_Vars[12])
 		qty_entry.grid(row=8, column=3, sticky="w", padx=10, pady=10)
 		
-		submit_btn = tk.Button(t, text="Create PO", command=self.save_PO)
+		submit_btn = tk.Button(t, text="Create PO", command=lambda: self.save_PO(t))
 		submit_btn.grid(row=9, column=3, sticky="e", padx=10, pady=10)
 		
 	def add_contract(self):
@@ -356,6 +369,78 @@ class WS_Contract(object):
 		submit_button = tk.Button(t, text="Submit Data", command=lambda: self.process_addition(varList,t))
 		submit_button.grid(row=10, column=1, sticky="w", padx=10, pady=10)
 		
+	def email_PO(self):
+		t = tk.Toplevel()
+		t.title("Send PO")
+		t.geometry('400x175')
+		
+		self.current_company.set("")
+		po_email = tk.StringVar()
+		po_display = tk.StringVar()
+		po_path = tk.StringVar()
+		
+		def company_function(eventObject):
+			company_info = self.PO_dict[self.current_company.get()]
+			po_email.set(company_info['email'])
+		
+		def browse():
+			po_path.set(filedialog.askopenfilename())
+			po_display.set(po_path.get()[po_path.get().rfind("/")+1:po_path.get().rfind(".")])
+			
+		def send_email(window):
+			
+			msg = MIMEMultipart('related')
+
+			msg['From'] = MY_ADDRESS
+			msg['To'] = po_email.get()
+			# msg['To'] = "k.cook2499@gmail.com"
+			msg['Subject'] = "PO"
+
+			msgBody = MIMEMultipart()
+			msg.attach(msgBody)
+
+			with open('po_email.txt','r') as file:
+				msgBody.attach(MIMEText(file.read(),'html'))
+			
+			file_name = os.path.basename(po_path.get())
+			file = open(po_path.get(),"rb")
+			attach = MIMEBase('application', 'octet-stream')
+			attach.set_payload((file).read())
+			encoders.encode_base64(attach)
+			attach.add_header('Content-Disposition', "attachment; filename= %s" % file_name)
+			
+			msgBody.attach(attach)
+			
+			s = smtplib.SMTP(host='smtp-mail.outlook.com', port=587)
+			s.starttls()
+			
+			s.login(MY_ADDRESS,MY_PASSWORD)
+			s.send_message(msg)
+			
+			window.destroy()
+		
+		company_menu = ttk.Combobox(t, textvariable=self.current_company, values=self.company_list)
+		company_menu.bind('<<ComboboxSelected>>', company_function)
+		company_menu.grid(row=0, column=0, sticky="we", columnspan=2, padx=10, pady=10)
+		
+		recipient_label = tk.Label(t, text="Email:")
+		recipient_label.grid(row=1, column=0, padx=10, pady=10)
+		
+		recipient_entry = tk.Entry(t, width=30, textvariable=po_email)
+		recipient_entry.grid(row=1, column=1, padx=10, pady=10)
+		
+		po_label = tk.Label(t, text="PO File")
+		po_label.grid(row=2, column=0, padx=10, pady=10)
+		
+		po_entry = tk.Entry(t, width=30, textvariable=po_display)
+		po_entry.grid(row=2, column=1, padx=10, pady=10)
+		
+		po_browse = tk.Button(t, text="Browse", command=browse)
+		po_browse.grid(row=2, column=2, padx=10, pady=10)
+		
+		send_email_button = tk.Button(t, text="Send PO", command=lambda: send_email(t))
+		send_email_button.grid(row=3, column=1, sticky="e", padx=10, pady=10)
+		
 	def contract_window(self):
 		main_window = tk.Toplevel()
 		main_window.geometry('300x200')
@@ -373,6 +458,9 @@ class WS_Contract(object):
 		
 		create_PO_button = tk.Button(main_window, text="Create PO", command= self.create_PO)
 		create_PO_button.grid(row=1, column=0, padx=10, pady=10)
+		
+		send_PO_button = tk.Button(main_window, text="Send PO", command= self.email_PO)
+		send_PO_button.grid(row=2, column=0, padx=10, pady=10)
 		
 		
 		

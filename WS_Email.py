@@ -7,15 +7,9 @@ from tkinter import filedialog
 from tkinter import messagebox
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
 from string import Template
 from pathlib import Path
-
-# MY_ADDRESS = "info@westsiminc.com"
-# MY_PASSWORD = "Sukkur%%1798"
-
-MY_ADDRESS = "ali.kalwar@westsiminc.com"
-MY_PASSWORD = "Sukkur$$88"
+from settings import *
 
 class WS_Email(object):
 
@@ -52,7 +46,8 @@ class WS_Email(object):
 		# create email connection
 		s = smtplib.SMTP(host='smtp-mail.outlook.com', port=587)
 		s.starttls()
-		s.login(MY_ADDRESS,MY_PASSWORD) # login using constants defined above class
+		
+		s.login(MY_ADDRESS,MY_PASSWORD) # login using defined credentials
 		
 		# send all emails in approved list
 		for msg in self.email_list:

@@ -2,3 +2,4 @@ build/
 dist/
 
 Westsim_App.spec
+settings.py
