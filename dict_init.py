@@ -9,7 +9,6 @@ def cage_dict_init(file):
 	cage_max_row = cage_ws.max_row
 
 	cage_dict = {}
-	po_dict = {}
 
 	for i in range (1, cage_max_row+1):
 		if cage_ws['D' + str(i)].value and cage_ws['B' + str(i)].value:
