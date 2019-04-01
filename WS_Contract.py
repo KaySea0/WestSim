@@ -139,9 +139,10 @@ class WS_Contract(object):
 		f.close()
 		os.remove(f.name)
 		
-		# open up main workbook and write PO number to corresponding row
+		# open up main workbook and write PO number / total to corresponding row
 		main_ws = self.main_wb['DLAORDERS']
 		main_ws['I'+str(self.current_contract_num.get())] = self.PO_Vars[5].get()
+		main_ws['L'+str(self.current_contract_num.get())] = po_ws['H18'].value
 		
 		self.main_wb.save(self.dict['main']) # save main_wb
 		
