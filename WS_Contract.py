@@ -127,8 +127,8 @@ class WS_Contract(object):
 		po_ws['C18'] = "P/N: {}".format(self.PO_Vars[9].get())		# part number
 		po_ws['C19'] = "NSN: {}".format(self.PO_Vars[10].get())		# NSN
 		po_ws['C20'] = self.PO_Vars[11].get() # general part description
-		po_ws['E18'] = self.PO_Vars[12].get() # quantity
-		po_ws['G18'] = self.PO_Vars[13].get() # unit price
+		po_ws['E18'] = int(self.PO_Vars[12].get()) # quantity
+		po_ws['G18'] = float(self.PO_Vars[13].get()) # unit price
 		
 		# if checkbox has been checked, include UPS account number
 		if self.check_var.get() == 1:
@@ -142,7 +142,6 @@ class WS_Contract(object):
 		# open up main workbook and write PO number / total to corresponding row
 		main_ws = self.main_wb['DLAORDERS']
 		main_ws['I'+str(self.current_contract_num.get())] = self.PO_Vars[5].get()
-		main_ws['L'+str(self.current_contract_num.get())] = po_ws['H18'].value
 		
 		self.main_wb.save(self.dict['main']) # save main_wb
 		
