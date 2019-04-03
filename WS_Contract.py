@@ -142,13 +142,21 @@ class WS_Contract(object):
 		# open up main workbook and write PO number / total to corresponding row
 		main_ws = self.main_wb['DLAORDERS']
 		main_ws['I'+str(self.current_contract_num.get())] = self.PO_Vars[5].get()
+		main_ws['L'+str(self.current_contract_num.get())] = int(self.PO_Vars[12].get()) * float(self.PO_Vars[13].get())
 		
-		self.main_wb.save(self.dict['main']) # save main_wb
-		
-		# confirmation message that PO was saved
-		tk.messagebox.showinfo("PO Created", "{} has been saved.".format(f.name))
-		
+		while True:
+			try:
+				self.main_wb.save(self.dict['main']) # save main_wb
+				break
+			except:
+				pass
+				
+			tk.messagebox.showinfo("An error has occurred", "Workbook {} is still open, please close it and press 'Ok' to continue operation.".format(self.dict['main'][self.dict['main'].rfind('/')+1:]))
+				
 		window.destroy() # close PO form
+		
+		# confirmation message that PO was saved successfully
+		tk.messagebox.showinfo("PO Created", "{} has been saved.".format(f.name))
 	
 	# # #
 	# Method: process_addition
@@ -176,7 +184,14 @@ class WS_Contract(object):
 		main_ws['H'+str(next_row)] = var_list[9].get()		# due date
 		main_ws['A'+str(next_row)] = last_num+1				# reference number
 		
-		self.main_wb.save(self.dict['main']) # save main_wb
+		while True:
+			try:
+				self.main_wb.save(self.dict['main']) # save main_wb
+				break
+			except:
+				pass
+				
+			tk.messagebox.showinfo("An error has occurred", "Workbook {} is still open, please close it and press 'Ok' to continue operation.".format(self.dict['main'][self.dict['main'].rfind('/')+1:]))
 		
 		# open wip_wb
 		wip_ws = self.wip_wb.active
@@ -192,13 +207,20 @@ class WS_Contract(object):
 		wip_ws['H'+str(next_row)] = var_list[7].get() # part number
 		wip_ws['I'+str(next_row)] = var_list[8].get() # preservation method
 		wip_ws['J'+str(next_row)] = var_list[9].get() # due date
-		
-		self.wip_wb.save(self.dict['wip']) # save wip_wb
-		
-		# confirmation message that contract info was saved
-		tk.messagebox.showinfo("Contract info saved", "Contract {} information has been saved.".format(var_list[1].get()))
+
+		while True:
+			try:
+				self.wip_wb.save(self.dict['wip']) # save wip_wb
+				break
+			except:
+				pass
+				
+			tk.messagebox.showinfo("An error has occurred", "Workbook {} is still open, please close it and press 'Ok' to continue operation.".format(self.dict['wip'][self.dict['wip'].rfind('/')+1:]))
 		
 		window.destroy() # close contract addition form
+		
+		# confirmation message that contract info was saved
+		tk.messagebox.showinfo("Contract info saved", "Contract {} has been registered. Be sure to save the PDF to the appropriate folder ({}).".format(var_list[1].get(),var_list[6].get()))
 	
 	# # #
 	# Method: create_PO
