@@ -40,6 +40,10 @@ class WS_Contract(object):
 		
 		self.PO_Vars = None # list of all reference variables for PO creation form
 		self.check_var = tk.IntVar() # reference variable for checkbox in PO creation form
+		
+		self.next_row = 0 # local reference to next line for new contracts to be added
+		self.contract_edits = [] # list of all new contracts to be added to main workbook
+		self.PO_edits = [] # list of all PO info to be added to main workbook
 	
 	# # #
 	# Method: create_dicts
@@ -91,6 +95,53 @@ class WS_Contract(object):
 			self.wip_list.append(row[1]) # add contract number to list for user to select
 			self.wip_dict[row[1]] = t_entry # add contract info to dictionary, make key the contract number
 	
+	# # #
+	# Method: save_changes
+	# Input: n/a
+	# Utility:
+	#   Make all appropriate changes to main_wb from user's input of new contracts and PO's in one go to avoid need for workbook reparation 
+	# # #
+	def save_changes(self):
+
+		if self.contract_edits or self.PO_edits:
+			main_ws = self.main_wb['DLAORDERS']
+			
+			if self.contract_edits:
+				for contract in self.contract_edits:
+					row_num = contract[0]
+					
+					main_ws['A'+row_num] = contract[1]
+					main_ws['G'+row_num] = contract[2]
+					main_ws['B'+row_num] = contract[3]
+					main_ws['E'+row_num] = contract[4]
+					main_ws['K'+row_num] = contract[5]
+					main_ws['D'+row_num] = contract[6]
+					main_ws['F'+row_num] = contract[7]
+					main_ws['H'+row_num] = contract[8]
+
+			if self.PO_edits:
+				for PO in self.PO_edits:
+					row_num = PO[0]
+					
+					main_ws['I'+row_num] = PO[1]
+					main_ws['L'+row_num = PO[2]
+				
+			while True:
+				try:
+					self.main_wb.save(self.dict['main']) # save main_wb
+					break
+				except:
+					pass
+					
+				tk.messagebox.showinfo("An error has occurred", "Workbook {} is still open, please close it and press 'Ok' to continue operation.".format(self.dict['main'][self.dict['main'].rfind('/')+1:]))
+				
+			self.contract_edits.clear()
+			self.PO_edits.clear()
+				
+			tk.messagebox.showinfo("Changes confirmation", "All changes have been saved to Workbook {}.".format(self.dict['main'][self.dict['main'].rfind('/')+1:]))
+		else:
+			tk.messagebox.showinfo("No changes", "No data has been entered, so no changes have been made to Workbook {}".format(self.dict['main'][self.dict['main'].rfind('/')+1:]))
+	
 	# # # 
 	# Method: save_PO
 	# Input:
@@ -139,10 +190,17 @@ class WS_Contract(object):
 		f.close()
 		os.remove(f.name)
 		
+		info = []
+		info.append(str(self.current_company_num.get()))
+		info.append(self.PO_Vars[5].get())
+		info.append(int(self.PO_Vars[12].get()) * float(self.PO_Vars[13].get()))
+		
+		self.PO_edits.append(info)
+		
 		# open up main workbook and write PO number / total to corresponding row
-		main_ws = self.main_wb['DLAORDERS']
-		main_ws['I'+str(self.current_contract_num.get())] = self.PO_Vars[5].get()
-		main_ws['L'+str(self.current_contract_num.get())] = int(self.PO_Vars[12].get()) * float(self.PO_Vars[13].get())
+		# main_ws = self.main_wb['DLAORDERS']
+		# main_ws['I'+str(self.current_contract_num.get())] = self.PO_Vars[5].get()
+		# main_ws['L'+str(self.current_contract_num.get())] = int(self.PO_Vars[12].get()) * float(self.PO_Vars[13].get())
 		
 		while True:
 			try:
@@ -168,21 +226,34 @@ class WS_Contract(object):
 	# # #
 	def process_addition(self, var_list, window):
 		
-		# open main_wb and reference row that new contract will be placed
+		info = []
+		info.append(str(self.next_row))
+		self.next_row += 1
+		
 		main_ws = self.main_wb['DLAORDERS']
-		next_row = main_ws.max_row+1
+		info.append(main_ws['A'+str(main_ws.max_row)].value+1) # reference number [A] 
+		info.append(var_list[0].get()) # award date [G]
+		info.append(var_list[1].get()) # contract number [B]
+		info.append(int(var_list[2].get())) # quantity [E]
+		info.append(var_list[3].get()) # contract total [K]
+		info.append(var_list[4].get()) # NSN [D]
+		info.append(var_list[6].get()) # vendor name [F]
+		info.append(var_list[9].get()) # due date [H]
+		
+		
+		self.contract_edits.append(info)
 		
 		# get most recent contract's reference number 
-		last_num = main_ws['A'+str(main_ws.max_row)].value 
+		# last_num = main_ws['A'+str(main_ws.max_row)].value 
 		
-		main_ws['G'+str(next_row)] = var_list[0].get() 		# award date
-		main_ws['B'+str(next_row)] = var_list[1].get()		# contract number
-		main_ws['E'+str(next_row)] = int(var_list[2].get()) # quantity
-		main_ws['K'+str(next_row)] = var_list[3].get()		# contract total
-		main_ws['D'+str(next_row)] = var_list[4].get()		# NSN
-		main_ws['F'+str(next_row)] = var_list[6].get()		# vendor name
-		main_ws['H'+str(next_row)] = var_list[9].get()		# due date
-		main_ws['A'+str(next_row)] = last_num+1				# reference number
+		# main_ws['G'+str(next_row)] = var_list[0].get() 		# award date
+		# main_ws['B'+str(next_row)] = var_list[1].get()		# contract number
+		# main_ws['E'+str(next_row)] = int(var_list[2].get()) # quantity
+		# main_ws['K'+str(next_row)] = var_list[3].get()		# contract total
+		# main_ws['D'+str(next_row)] = var_list[4].get()		# NSN
+		# main_ws['F'+str(next_row)] = var_list[6].get()		# vendor name
+		# main_ws['H'+str(next_row)] = var_list[9].get()		# due date
+		# main_ws['A'+str(next_row)] = last_num+1				# reference number
 		
 		while True:
 			try:
@@ -640,6 +711,7 @@ class WS_Contract(object):
 		if t_path.is_file():
 			self.dict = json.load(open('config_dict.json'))
 			self.main_wb = openpyxl.load_workbook(self.dict['main'])
+			self.next_row = self.main_wb['DLAORDERS'].max_row+1
 			self.wip_wb = openpyxl.load_workbook(self.dict['wip'])
 			self.create_dicts()
 		
@@ -654,3 +726,7 @@ class WS_Contract(object):
 		# button to send out PO to vendors
 		send_PO_button = tk.Button(main_window, text="Send PO", command= self.email_PO)
 		send_PO_button.grid(row=2, column=0, padx=10, pady=10)
+		
+		# button to save changes to main workbook
+		save_button = tk.Button(main_window, text="Save Changes", command= self.save_changes)
+		save_button.grid(row=3, column=0, padx=10, pady=10)
