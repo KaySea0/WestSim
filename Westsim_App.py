@@ -69,11 +69,19 @@ class Westsim_App(object):
 		config_button = tk.Button(frame,text="Config",command = self.WS_Config.config_window)
 		config_button.grid(row=2,column=1,padx=10,pady=10)
 
-		close_button = tk.Button(frame,text="Close",fg="red",command=lambda: sys.exit())
-		close_button.grid(row=3,column=0,padx=10,pady=10)
-
 if __name__ == '__main__':		
 	root = tk.Tk()
 	app = Westsim_App()
+	
+	def _delete_window():
+		try:
+			app.WS_Contract.save_changes()
+			root.destroy()
+		except:
+			pass
+			
+	root.protocol("WM_DELETE_WINDOW", _delete_window)
+		
 	app.start(root)
 	root.mainloop()
+	
