@@ -7,6 +7,7 @@ from tkinter import filedialog
 from tkinter import messagebox
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from string import Template
 from pathlib import Path
 from settings import *
@@ -122,7 +123,7 @@ class WS_Email(object):
 			
 			# if vendor allows for price break, add this request to quote
 			if 'p' in cage_dict[str(ali_ws['V2'].value)]['options']:
-				part_info += " or next price break"
+				part_info += " and next price break"
 			part_info += "<br><br>"
 			
 			sub_message = email_body.substitute(PART_INFO = part_info) # using template, generate email body with part_info substitution
@@ -148,7 +149,7 @@ class WS_Email(object):
 					bid_row += 1 # move to next row of bid sheet
 					
 					if 'p' in cage_dict[cur_cage_code]['options']:
-						part_info += " or next price break"
+						part_info += " and next price break"
 						
 					part_info += "<br><br>"
 					
@@ -170,7 +171,7 @@ class WS_Email(object):
 						bid_row += 1
 						
 						if 'p' in cage_dict[cur_cage_code]['options']:
-							part_info += " or next price break"
+							part_info += " and next price break"
 							
 						part_info += "<br><br>"
 						
@@ -193,7 +194,7 @@ class WS_Email(object):
 						bid_row += 1
 						
 						if 'p' in cage_dict[cur_cage_code]['options']:
-							part_info += " or next price break"
+							part_info += " and next price break"
 						
 						part_info += "<br><br>"
 					
@@ -288,6 +289,16 @@ class WS_Email(object):
 
 				# enter email text into body
 				msgBody.attach(MIMEText(message_list[count['value']][0],'html'))
+				
+				# add company logo to email
+				try:
+					fp = open('logo.png','rb')
+					img = MIMEImage(fp.read())
+					fp.close()
+					img.add_header('Content-ID', '<logo>')
+					msg.attach(img)
+				except:
+					pass
 				
 				# add email to validated list
 				self.email_list.append(msg)

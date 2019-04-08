@@ -57,6 +57,14 @@ class WS_Config(object):
 		t.title("Configuration Window")
 		t.geometry('600x250')
 		
+		def _delete_window():
+			try:
+				self.save_config(t)
+			except:
+				pass
+			
+		t.protocol("WM_DELETE_WINDOW", _delete_window)
+		
 		bid_label = tk.Label(t, text="Bid Sheet Folder")
 		bid_label.grid(row=0, column=0, padx=10, pady=10)
 		

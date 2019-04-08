@@ -78,7 +78,7 @@ if __name__ == '__main__':
 			app.WS_Contract.save_changes()
 			root.destroy()
 		except:
-			pass
+			root.destroy()
 			
 	root.protocol("WM_DELETE_WINDOW", _delete_window)
 		
