@@ -201,7 +201,7 @@ class WS_Contract(object):
 		os.remove(f.name)
 		
 		info = []
-		info.append(str(self.current_company_num.get()))
+		info.append(str(self.current_contract_num.get()))
 		info.append(self.PO_Vars[5].get())
 		info.append(int(self.PO_Vars[12].get()) * float(self.PO_Vars[13].get()))
 		
@@ -330,6 +330,10 @@ class WS_Contract(object):
 			# get date portion of PO number (2 character shorthand for month + last 2 digits of current year)
 			current_month = main_ws['B'+str(contract_trace)].value
 			po_time = str(month_init[current_month.month-1]) + str(current_month.year%100)
+			
+			# if local contract number is less than 10, add leading 0
+			if contract_num < 10:
+				po_time += "0"
 			
 			# create full PO number
 			po_num = po_time + str(contract_num)
