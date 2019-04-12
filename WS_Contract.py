@@ -10,6 +10,7 @@ from tkinter import filedialog
 from tkinter import messagebox
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from email.mime.base import MIMEBase
 from email import encoders
 from string import Template
@@ -630,6 +631,16 @@ class WS_Contract(object):
 			attach.set_payload((file).read())
 			encoders.encode_base64(attach)
 			attach.add_header('Content-Disposition', "attachment; filename= %s" % file_name)
+			
+			# add company logo to email
+			try:
+				fp = open('logo.png','rb')
+				img = MIMEImage(fp.read())
+				fp.close()
+				img.add_header('Content-ID', '<logo>')
+				msg.attach(img)
+			except:
+				pass
 			
 			msgBody.attach(attach)
 			
