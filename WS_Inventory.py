@@ -51,8 +51,7 @@ class WS_Inventory(object):
 		self.qty_var.set(0)
 		
 		messagebox.showinfo("Stock Added", "Stock information has been saved!")
-		
-		
+	
 	def add_stock_window(self):
 		win = tk.Toplevel()
 		win.geometry('250x130')
