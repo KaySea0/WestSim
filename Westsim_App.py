@@ -81,6 +81,7 @@ if __name__ == '__main__':
 	def _delete_window():
 		try:
 			app.WS_Contract.save_changes()
+			app.WS_Inventory.save_changes()
 			root.destroy()
 		except:
 			root.destroy()
