@@ -150,8 +150,6 @@ class WS_Contract(object):
 				
 			# save confirmation
 			tk.messagebox.showinfo("Changes confirmation", "All changes have been saved to Workbook {}.".format(self.dict['main'][self.dict['main'].rfind('/')+1:]))
-		else: # if no changes need to be made, prompt user of this fact
-			tk.messagebox.showinfo("No changes", "No data has been entered, so no changes have been made to Workbook {}".format(self.dict['main'][self.dict['main'].rfind('/')+1:]))
 	
 	# # # 
 	# Method: save_PO
