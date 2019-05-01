@@ -196,8 +196,6 @@ class WS_Inventory(object):
 		t.geometry('250x200')
 		t.title("Inventory Management")
 		
-		5930011475211
-		
 		def _delete_window():
 			try:
 				self.save_changes()
