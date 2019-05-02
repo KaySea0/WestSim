@@ -1,76 +1,97 @@
-# https://stackoverflow.com/questions/27745500/how-to-save-a-list-to-a-file-and-read-it-as-a-list-type/28305183
 import tkinter as tk
 import pickle
 from tkinter import messagebox
-
-# record part number and NSN for each part
-# PN ---- NSN ---- QTY ---- Edit
-# Edit -> message box asking for qty change -> change value in list
-# Save function that is used when editing and adding
 
 class WS_Inventory(object):
 	
 	def __init__(self):
 		
+		# load inventory list if it exists, create empty list otherwise
 		try:
 			with open("inventory.txt","rb") as fp:
 				self.inventory_list = pickle.load(fp)
 		except:
 			self.inventory_list = []
 			
-		self.pn_var = tk.StringVar()
-		self.nsn_var = tk.StringVar()
-		self.qty_var = tk.IntVar()
+		self.pn_var = tk.StringVar()  # reference variable for part number
+		self.nsn_var = tk.StringVar() # reference variable for NSN
+		self.qty_var = tk.IntVar()    # reference variable for quantity
 		
-		self.search_frame = None
-		self.canvas = None
-		self.scroll = None
-		
+		self.search_frame = None # frame that contains list of stock that matches search
+		self.canvas = None # canvas that contains search frame
+		self.scroll = None # scrollbar that controls aforementioned list of stock
+	
+	# # #
+	# Method: update_view
+	# Input: n/a
+	# Utility:
+	#   Update displayed list of stock based on search terms (PN/NSN) provided by user in text boxes
+	# # #
 	def update_view(self, *args):
 		
+		# destroy current frame before rebuilding
 		if self.search_frame is not None:
 			self.search_frame.destroy()
 			
+		# create new frame
 		self.search_frame = tk.Frame(self.canvas)
 		
+		# label for PN column
 		pn_header = tk.Label(self.search_frame, text="PN")
 		pn_header.grid(row=0, column=0, padx=10, pady=10)
 		
+		# label for NSN column
 		nsn_header = tk.Label(self.search_frame, text="NSN")
 		nsn_header.grid(row=0, column=1, padx=10, pady=10)
 		
+		# label for QTY column
 		qty_header = tk.Label(self.search_frame, text="QTY")
 		qty_header.grid(row=0, column=2, padx=10, pady=10)
 		
+		# if neither text box has any data, display full inventory list
 		if not self.pn_var.get() and not self.nsn_var.get():
 			display_list = self.inventory_list
-		else:
+		else: # if either / both boxes are populated, perform search for matching stock
+			
+			# list to store matching stock that will be displayed
 			display_list = []
 			
+			# running through every item currently in inventory...
 			for part in self.inventory_list:
+				
+				# user looking for matching sequence in both PN and NSN
 				if self.pn_var.get():
 					if self.nsn_var.get():
-						if self.pn_var.get() in part[1] and self.nsn_var.get() in part[2]:
+						if self.pn_var.get().lower() in part[1].lower() and self.nsn_var.get().lower() in part[2].lower():
 							display_list.append(part)
+					# user looking for matching sequence in only PN
 					else:
-						if self.pn_var.get() in part[1]:
+						if self.pn_var.get().lower() in part[1].lower():
 							display_list.append(part)
+				# user looking for matching sequence in only NSN
 				else:
-					if self.nsn_var.get() in part[2]:
+					if self.nsn_var.get().lower() in part[2].lower():
 						display_list.append(part)
-						
+		
+		# for matched stock, create item to display on search frame 
 		for i in range(1, len(display_list)+1):
+		
+			# quick reference for current item
 			part = display_list[i-1]
 			
+			# PN label for stock
 			pn_search_label = tk.Label(self.search_frame, text=part[1])
 			pn_search_label.grid(row=i, column=0, padx=10, pady=10)
 			
+			# NSN label for stock
 			nsn_search_label = tk.Label(self.search_frame, text=part[2])
 			nsn_search_label.grid(row=i, column=1, padx=10, pady=10)
 			
+			# QTY label for stock
 			qty_search_label = tk.Label(self.search_frame, text=part[3])
 			qty_search_label.grid(row=i, column=2, padx=10, pady=10)
 			
+			# 'Edit' button for each item to change 
 			edit_button = tk.Button(self.search_frame, text="Edit", command=lambda item=part: self.edit_window(item))
 			edit_button.grid(row=i, column=3, padx=10, pady=10)
 			
