@@ -2,6 +2,9 @@ import tkinter as tk
 import pickle
 from tkinter import messagebox
 
+# distinguish between reference variables for 'add' and 'search/update' functionality
+# add id functionality 
+
 class WS_Inventory(object):
 	
 	def __init__(self):
@@ -16,6 +19,12 @@ class WS_Inventory(object):
 		self.pn_var = tk.StringVar()  # reference variable for part number
 		self.nsn_var = tk.StringVar() # reference variable for NSN
 		self.qty_var = tk.IntVar()    # reference variable for quantity
+		self.id_var = tk.StringVar()
+		
+		self.pn_add_var = tk.StringVar()
+		self.nsn_add_var = tk.StringVar()
+		self.qty_add_var = tk.IntVar()
+		self.id_add_var = tk.StringVar()
 		
 		self.search_frame = None # frame that contains list of stock that matches search
 		self.canvas = None # canvas that contains search frame
