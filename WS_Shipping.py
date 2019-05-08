@@ -4,9 +4,9 @@ from tkinter import messagebox
 
 # run through main_wb and grab PO number and contract number for each line
 # create another "search" window by PO number and contract number
-# when selecting contract, have two parts
-## labels for initial searching in VSM (first 6 / last 4 of contract number), label info (PN, Preservation Method), and company name for label saving
-## input for receiving report (toggle for total/partial, quantity, shipping/invoice number, total for verification, RFID number) with toggle for RFID
+# when selecting contract, have two buttons for different popups
+# # labels for initial searching in VSM (first 6 / last 4 of contract number), label info (PN, Preservation Method), and company name for label saving
+# # input for receiving report (toggle for total/partial, quantity, shipping/invoice number, total for verification, RFID number) with toggle for RFID
 
 class WS_Shipping(object):
 	
@@ -21,9 +21,11 @@ class WS_Shipping(object):
 		
 	def save_changes(self):
 		pass
-		
+	
+	# start at 251
 	def create_lists(self):
-		pass
+		main_ws = self.main_wb['DLAORDERS']
+		
 		
 	def shipping_window(self):
 		
