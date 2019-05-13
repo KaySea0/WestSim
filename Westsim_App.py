@@ -4,6 +4,7 @@ from WS_BidSheet import WS_BidSheet
 from WS_Config import WS_Config
 from WS_Contract import WS_Contract
 from WS_Inventory import WS_Inventory
+from WS_Shipping import WS_Shipping
 import json
 import os
 import sys
@@ -20,6 +21,7 @@ class Westsim_App(object):
 		self.WS_Config = WS_Config()
 		self.WS_Contract = WS_Contract()
 		self.WS_Inventory = WS_Inventory()
+		self.WS_Shipping = WS_Shipping()
 		self.ws = 0
 		self.hs = 0
 		
@@ -71,8 +73,11 @@ class Westsim_App(object):
 		inventory_button = tk.Button(frame,text="Inventory Management", command= self.WS_Inventory.inventory_window)
 		inventory_button.grid(row=2,column=1,padx=10,pady=10)
 		
+		shipping_button = tk.Button(frame,text="Shipping Management", command= self.WS_Shipping.shipping_window)
+		shipping_button.grid(row=3,column=0,padx=10,pady=10)
+		
 		config_button = tk.Button(frame,text="Config",command = self.WS_Config.config_window)
-		config_button.grid(row=3,column=0,padx=10,pady=10)
+		config_button.grid(row=3,column=1,padx=10,pady=10)
 
 if __name__ == '__main__':		
 	root = tk.Tk()
