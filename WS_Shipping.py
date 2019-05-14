@@ -95,26 +95,57 @@ class WS_Shipping(object):
 		
 	def vsm_window(self, contract):
 		vsm = tk.Toplevel()
-		vsm.geometry('300x200')
-		vsm.title('VSM Information')
+		vsm.title('VSM - ' + contract[0])
 		
 		company_name = tk.Label(vsm, text=contract[2], font='Helvetica 15 bold')
-		company_name.grid(row=0, column=0, padx=5, pady=5)
+		company_name.grid(row=0, column=0, sticky="e", padx=5, pady=5)
 		
-		contract_date = tk.Label(vsm, text=contract[3].strftime('%m/%d/%Y'), font='Helvetica 15 bold')
-		contract_date.grid(row=0, column=1, padx=5, pady=5)
+		if isinstance(contract[3], str):
+			date_text = contract[3]
+		else:
+			date_text = contract[3].strftime('%m/%d/%Y')
 		
-		po_search = tk.Label(vsm, text="PO Search: ")
-		po_search.grid(row=1, column=0, padx=5, pady=5)
+		contract_date = tk.Label(vsm, text=date_text, font='Helvetica 15 bold')
+		contract_date.grid(row=0, column=1, sticky="w", padx=5, pady=5)
 		
-		po_entry_text = tk.Entry(vsm)
-		po_entry_text.insert(0,contract[0][:6])
-		po_entry_text.grid(row=1, column=1, padx=5, pady=5)
+		po_label = tk.Label(vsm, text="PO Search:")
+		po_label.grid(row=1, column=0, sticky="e", padx=5, pady=5)
+		
+		po_search = tk.Text(vsm, height=1, width=8, borderwidth=0)
+		po_search.insert(1.0, contract[0][:6])
+		po_search.configure(state="disabled", inactiveselectbackground=po_search.cget("selectbackground"))
+		po_search.grid(row=1, column=1, sticky="w", padx=5, pady=5)
 		
 		po_ref = tk.Label(vsm, text="-" + contract[0][contract[0].rfind('-')+1:])
 		po_ref.grid(row=1, column=2, padx=5, pady=5)
 		
-		# continue adding appropriate references necessary for completing VSM printing (list at top of document)
+		pn_text = ""
+		preservation_text = ""
+		
+		for ref in self.wip_list:
+			if ref[0] == contract[0]:
+				pn_text = ref[2]
+				preservation_text = ref[3]
+				
+		if not pn_text: 
+			pn_text = "Look up in contract PDF"
+			preservation_text = "Look up in contract PDF"
+			
+		pn_label = tk.Label(vsm, text="P/N:")
+		pn_label.grid(row=2, column=0, sticky="e", padx=5, pady=5)
+		
+		pn_info = tk.Text(vsm, height=1, width=20, borderwidth=0)
+		pn_info.insert(1.0, pn_text)
+		pn_info.configure(state="disabled", inactiveselectbackground=po_search.cget("selectbackground"))
+		pn_info.grid(row=2, column=1, sticky="w", padx=5, pady=5)
+		
+		preservation_label = tk.Label(vsm, text="Preservation Method:")
+		preservation_label.grid(row=3, column=0, sticky="e", padx=5, pady=5)
+		
+		preservation_info = tk.Text(vsm, height=1, width=20, borderwidth=0)
+		preservation_info.insert(1.0, preservation_text)
+		preservation_info.configure(state="disabled", inactiveselectbackground=po_search.cget("selectbackground"))
+		preservation_info.grid(row=3, column=1, sticky="w", padx=5, pady=5)
 		
 	def wawf_window(self, contract):
 		pass
@@ -140,11 +171,11 @@ class WS_Shipping(object):
 			# Contract Number - Vendor Name - P/N - Preservation Method
 			for i in range(1, list_end):
 				self.wip_list.append([wip_ws['B'+str(i)].value, wip_ws['G'+str(i)].value, wip_ws['H'+str(i)].value, wip_ws['I'+str(i)].value])
-		
+				
 	def shipping_window(self):
 		
 		t = tk.Toplevel()
-		t.geometry('500x250')
+		t.geometry('525x250')
 		t.title('Shipping Management')
 		
 		def _delete_window():
