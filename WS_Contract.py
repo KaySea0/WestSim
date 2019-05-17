@@ -711,7 +711,11 @@ class WS_Contract(object):
 		if t_path.is_file():
 			self.dict = json.load(open('config_dict.json'))
 			self.main_wb = openpyxl.load_workbook(self.dict['main'])
-			self.next_row = self.main_wb['DLAORDERS'].max_row+1
+			
+			check_row = self.main_wb['DLAORDERS'].max_row
+			while(self.main_wb['DLAORDERS']['A'+str(check_row)].value is None): check_row -= 1
+			self.next_row = check_row+1
+			
 			self.next_ref = self.main_wb['DLAORDERS']['A'+str(self.next_row-1)].value+1
 			self.wip_wb = openpyxl.load_workbook(self.dict['wip'])
 			self.create_dicts()
