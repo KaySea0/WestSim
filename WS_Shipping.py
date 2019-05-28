@@ -146,9 +146,86 @@ class WS_Shipping(object):
 		preservation_info.insert(1.0, preservation_text)
 		preservation_info.configure(state="disabled", inactiveselectbackground=po_search.cget("selectbackground"))
 		preservation_info.grid(row=3, column=1, sticky="w", padx=5, pady=5)
-		
+
+# # input for receiving report (toggle for total/partial, quantity, shipping/invoice number, total for verification, RFID number) with toggle for RFID
+	
 	def wawf_window(self, contract):
-		pass
+		
+		wawf = tk.Toplevel()
+		wawf.title('WAWF - ' + contract[0])
+		
+		main_ws = self.main_wb['SHipInvice']
+		max_row = main_ws.max_row
+		
+		shipping_number = tk.StringVar()
+		invoice_number = tk.StringVar()
+		qty_select = tk.IntVar()
+		
+		inv_num = int(main_ws['I'+str(max_row)].value[-2:])+1
+		invoice_number.set(main_ws['I'+str(max_row)].value[:-2] + str(inv_num))
+		
+		shipping_number.set(invoice_number.get()[:-3] + invoice_number.get()[-2:])
+		qty_select.set(-1)
+		
+		def partial_select():
+			if 'Z' in shipping_number.get():
+				shipping_number.set(shipping_number.get()[:-1])
+				update_text()
+			
+		def total_select():
+			if not 'Z' in shipping_number.get():
+				shipping_number.set(shipping_number.get()+'Z')
+				update_text()
+		
+		section_title = tk.Label(wawf, text="WAWF", font='Helvetica 15 bold')
+		section_title.grid(row=0, column=0, padx=5, pady=5)
+		
+		qty_label = tk.Label(wawf, text="Quantity:")
+		qty_label.grid(row=0, column=1, padx=5, pady=5, sticky="e")
+		
+		qty_select = tk.IntVar()
+		qty_select.set(-1)
+		
+		tk.Radiobutton(wawf, text="Partial", variable=qty_select, value=0, indicatoron=0, command=partial_select).grid(row=0, column=2, padx=5, pady=5)
+		tk.Radiobutton(wawf, text="Total", variable=qty_select, value=1, indicatoron=0, command=total_select).grid(row=0, column=3, padx=5, pady=5)
+		
+		qty_text = tk.Text(wawf, height=1, width=5, borderwidth=0)
+		qty_text.insert(1.0, contract[4])
+		qty_text.grid(row=0, column=4, padx=5, pady=5)
+		
+		qty_total = tk.Label(wawf, text="of " + str(contract[4]))
+		qty_total.grid(row=0, column=5, padx=5, pady=5)
+		
+		contract_label = tk.Label(wawf, text="Contract #:")
+		contract_label.grid(row=1, column=0, padx=5, pady=5, sticky="e")
+		
+		contract_search = tk.Text(wawf, height=1, width=18, borderwidth=0)
+		contract_search.insert(1.0, contract[0])
+		contract_search.configure(state="disabled", inactiveselectbackground=contract_search.cget("selectbackground"))
+		contract_search.grid(row=1, column=1, padx=5, pady=5)
+		
+		shipping_label = tk.Label(wawf, text="Shipping #:")
+		shipping_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
+		
+		shipping_text = tk.Text(wawf, height=1, width=10, borderwidth=0)
+		shipping_text.insert(1.0, shipping_number.get())
+		shipping_text.configure(state="disabled", inactiveselectbackground=contract_search.cget("selectbackground"))
+		shipping_text.grid(row=2, column=1, padx=5, pady=5)
+		
+		invoice_label = tk.Label(wawf, text="Invoice #")
+		invoice_label.grid(row=3, column=0, padx=5, pady=5, sticky="e")
+		
+		invoice_text = tk.Text(wawf, height=1, width=10, borderwidth=0)
+		invoice_text.insert(1.0, invoice_number.get())
+		invoice_text.configure(state="disabled", inactiveselectbackground=contract_search.cget("selectbackground"))
+		invoice_text.grid(row=3, column=1, padx=5, pady=5)
+		
+		def update_text():
+			shipping_text.configure(state="normal")
+			shipping_text.delete(1.0, tk.END)
+			shipping_text.insert(1.0, shipping_number.get())
+			shipping_text.configure(state="disabled")
+		
 	
 	def save_changes(self):
 		pass
@@ -160,10 +237,10 @@ class WS_Shipping(object):
 			list_start = 278 # row number that search should start at for main_ws (dependent on what orders have come in)
 			list_end = main_ws.max_row+1
 			
-			# Contract Number - PO Number - Vendor Name - Date Awarded
+			# Contract Number - PO Number - Vendor Name - Date Awarded - Quantity - Contract Total
 			for i in range(list_start, list_end):
 				if not main_ws['I'+str(i)].value is None:
-					self.contract_list.append([main_ws['B'+str(i)].value, main_ws['I'+str(i)].value, main_ws['F'+str(i)].value, main_ws['G'+str(i)].value])
+					self.contract_list.append([main_ws['B'+str(i)].value, main_ws['I'+str(i)].value, main_ws['F'+str(i)].value, main_ws['G'+str(i)].value, main_ws['E'+str(i)].value, main_ws['K'+str(i)].value])
 					
 			wip_ws = self.wip_wb.active
 			list_end = wip_ws.max_row+1
