@@ -87,6 +87,7 @@ if __name__ == '__main__':
 		try:
 			app.WS_Contract.save_changes()
 			app.WS_Inventory.save_changes()
+			app.WS_Shipping.save_changes()
 			root.destroy()
 		except:
 			root.destroy()
