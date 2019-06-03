@@ -38,7 +38,7 @@ class WS_Shipping(object):
 	#   Determine last used RFID number in shipping information and increment local reference for future shipments 
 	# # #
 	def update_rfid(self):
-		
+	
 		# if first time in method, look in workbook for most recent rfid number that was used and set reference
 		if self.next_rfid.get() is "":
 			
@@ -47,7 +47,7 @@ class WS_Shipping(object):
 			row_search = self.next_row-1
 			
 			# determine what highest row actually has data (and not just a blank row)
-			while(len(main_ws['K'+str(row_search)].value) < 4): row_search -= 1
+			while(main_ws['K'+str(row_search)].value is None or len(main_ws['K'+str(row_search)].value) < 4): row_search -= 1
 			
 			# set initial rfid number
 			self.next_rfid.set(main_ws['K'+str(row_search)].value)
@@ -56,7 +56,7 @@ class WS_Shipping(object):
 		hex_part = self.next_rfid.get()[-4:]
 		hex_int = int(hex_part, 16) + 1
 		new_hex = hex(hex_int)[2:].upper()
-		if len(new_hex) < 4: nex_hex = '0' + new_hex
+		if len(new_hex) < 4: new_hex = "0" + str(new_hex)
 		
 		# set new rfid number
 		self.next_rfid.set(self.next_rfid.get()[:-4] + new_hex)
@@ -278,7 +278,7 @@ class WS_Shipping(object):
 		def rfid_select():
 			
 			# swap between "No" and next rfid number 
-			if rfid_display.get() is "No":
+			if rfid_display.get() == "No":
 				rfid_display.set(self.next_rfid.get())
 			else:
 				rfid_display.set("No")
@@ -596,10 +596,10 @@ class WS_Shipping(object):
 			self.next_ref = self.main_wb['SHipInvice']['A'+str(self.next_row-1)].value+1 # get next reference number for shipment info
 			
 			# set initial values of invoice and shipment number
-			inv_num = int(self.main_wb['SHipInvice']['I'+str(self.next_row-1)].value[-2:])+1
-			self.invoice_number.set(self.main_wb['SHipInvice']['I'+str(self.next_row-1)].value[:-2] + str(inv_num))
+			inv_num = int(self.main_wb['SHipInvice']['I'+str(self.next_row-1)].value[-4:])+1
+			self.invoice_number.set(self.main_wb['SHipInvice']['I'+str(self.next_row-1)].value[:-4] + (4-len(str(inv_num)))*"0" + str(inv_num))
 		
-			self.shipping_number.set(self.invoice_number.get()[:-3] + self.invoice_number.get()[-2:])
+			self.shipping_number.set(self.invoice_number.get()[:-4] + self.invoice_number.get()[-3:])
 			
 			# create contract lists from main/wip_wb and grab next rfid number
 			self.create_lists()
