@@ -10,7 +10,8 @@ class WS_Shipping(object):
 	
 	def __init__(self):
 	
-		self.contract_list = [] 			  # list of contracts in main_wb
+		self.contract_list = [] 			  # list of contracts in main_wb - DLAORDERS
+		self.ship_inv_list = []				  # list of contracts in main_wb - ShipInvoice
 		self.wip_list = []					  # list of contracts in wip_wb
 		
 		self.dict = None					  # config dictionary reference
@@ -88,6 +89,10 @@ class WS_Shipping(object):
 		vendor_search_label = tk.Label(self.search_frame, text="Vendor")
 		vendor_search_label.grid(row=0, column=2, padx=5, pady=5)
 		
+		# search result header label for quantity
+		qty_search_label = tk.Label(self.search_frame, text="Quantity")
+		qty_search_label.grid(row=0, column=3, padx=5, pady=5)
+		
 		# if 'search' button is pressed with no inputs, grab all possible contracts
 		if not self.contract_var.get() and not self.po_var.get(): display_list = self.contract_list
 		else: 		
@@ -96,17 +101,28 @@ class WS_Shipping(object):
 			
 			# looping through all contracts pulled from main_wb
 			for contract in self.contract_list:
+			
+				# fine tune user contract number search term for proper comparison
+				if self.contract_var.get():
+					if not self.contract_var.get().isalpha(): contract_comp = self.contract_var.get()
+					else: contract_comp = self.contract_var.get().lower()
+
+				# fine tune user po number search term for proper comparison
+				if self.po_var.get():
+					if not self.po_var.get().isalpha(): po_comp = self.po_var.get()
+					else: po_comp = self.po_var.get().lower()
+				
 				# if user provided input for contract AND PO number...
 				if self.contract_var.get():
 					if self.po_var.get():
 						# check to see if contract matches both values; if so, add to list for later displaying
-						if self.contract_var.get().lower() in contract[0].lower() and self.po_var.get().lower() in contract[1].lower():
+						if contract_comp in contract[0].lower() and po_comp in contract[1].lower():
 							display_list.append(contract)
 					else: # if user provided input for only contract number...
-						if self.contract_var.get().lower() in contract[0].lower():
+						if contract_comp in contract[0].lower():
 							display_list.append(contract)
 				else: # if user provided input for only PO number...
-					if self.po_var.get().lower() in contract[1].lower():
+					if po_comp in contract[1].lower():
 						display_list.append(contract)
 		
 		# loop through all contracts that match search values
@@ -126,13 +142,24 @@ class WS_Shipping(object):
 			vendor_single_label = tk.Label(self.search_frame, text=contract[2])
 			vendor_single_label.grid(row=i, column=2, padx=5, pady=5)
 			
+			# label for matching quantity
+			qty_single_label = tk.Label(self.search_frame, text=contract[4])
+			qty_single_label.grid(row=i, column=3, padx=5, pady=5)
+			
 			# button that will provide data used in VSM form
 			vsm_button = tk.Button(self.search_frame, text="VSM", command=lambda contract=contract: self.vsm_window(contract))
-			vsm_button.grid(row=i, column=3, padx=5, pady=5)
+			vsm_button.grid(row=i, column=4, padx=5, pady=5)
 			
 			# button that will provide data used in WAWF form
 			wawf_button = tk.Button(self.search_frame, text="WAWF", command=lambda contract=contract: self.wawf_window(contract))
-			wawf_button.grid(row=i, column=4, padx=5, pady=5)
+			wawf_button.grid(row=i, column=5, padx=5, pady=5)
+			
+			# checkbox that signifies if contract has prior shipment information
+			ship_check = tk.Checkbutton(self.search_frame)
+			if contract[6]: ship_check.select()
+			ship_check.configure(state="disabled")
+			
+			ship_check.grid(row=i, column=6, padx=5, pady=5)
 		
 		self.canvas.create_window((4,4),window=self.search_frame,anchor="nw")
 		
@@ -537,18 +564,28 @@ class WS_Shipping(object):
 	# # #
 	def create_lists(self):
 	
-		# if list has not been created yet, do so
+		# if lists have not been created yet, do so
 		if not self.contract_list:
 			
-			main_ws = self.main_wb['DLAORDERS'] # open main_wb
+			ship_inv_ws = self.main_wb['SHipInvice'] # open main_wb - ShipInvoice
+			list_end = ship_inv_ws.max_row+1
+			
+			# # create list of all contract numbers that exists as shipments in records
+			for i in range(1, list_end):
+				if not ship_inv_ws['B'+str(i)].value is None:
+					self.ship_inv_list.append(ship_inv_ws['B'+str(i)].value)
+			
+			main_ws = self.main_wb['DLAORDERS'] # open main_wb - DLAORDERS
 			list_start = 278 # row number that search should start at for main_ws (dependent on what orders have come in)
 			list_end = main_ws.max_row+1
 			
 			# # create list of all contracts from main_wb; data outlined below
-			# Contract Number - PO Number - Vendor Name - Date Awarded - Quantity - Contract Total
+			# Contract Number - PO Number - Vendor Name - Date Awarded - Quantity - Contract Total - Exists in ShipInvoice
 			for i in range(list_start, list_end):
 				if not main_ws['I'+str(i)].value is None:
-					self.contract_list.append([main_ws['B'+str(i)].value, main_ws['I'+str(i)].value, main_ws['F'+str(i)].value, main_ws['G'+str(i)].value, main_ws['E'+str(i)].value, main_ws['K'+str(i)].value])
+					
+					data = [main_ws['B'+str(i)].value, main_ws['I'+str(i)].value, main_ws['F'+str(i)].value, main_ws['G'+str(i)].value, main_ws['E'+str(i)].value, main_ws['K'+str(i)].value, main_ws['B'+str(i)].value in self.ship_inv_list]
+					self.contract_list.append(data)
 			
 			# open wip_wb and get reference for final row
 			wip_ws = self.wip_wb.active
