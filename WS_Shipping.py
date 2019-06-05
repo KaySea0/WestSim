@@ -11,8 +11,8 @@ class WS_Shipping(object):
 	def __init__(self):
 	
 		self.contract_list = [] 			  # list of contracts in main_wb - DLAORDERS
-		self.ship_inv_list = []				  # list of contracts in main_wb - ShipInvoice
 		self.wip_list = []					  # list of contracts in wip_wb
+		self.ship_inv_list = {}				  # list of contracts in main_wb - ShipInvoice
 		
 		self.dict = None					  # config dictionary reference
 		self.main_wb = None					  # main workbook that contains main contract / shipment information
@@ -155,11 +155,14 @@ class WS_Shipping(object):
 			wawf_button.grid(row=i, column=5, padx=5, pady=5)
 			
 			# checkbox that signifies if contract has prior shipment information
-			ship_check = tk.Checkbutton(self.search_frame)
-			if contract[6]: ship_check.select()
+			check_qty = (self.ship_inv_list[contract[0]] if contract[0] in self.ship_inv_list else 0)
+			ship_check = tk.Checkbutton(self.search_frame, text=str(check_qty)+"/"+str(contract[4]))
+
+			if check_qty != 0: ship_check.select()
+			else: ship_check.deselect()
 			ship_check.configure(state="disabled")
 			
-			ship_check.grid(row=i, column=6, padx=5, pady=5)
+			ship_check.grid(row=i, column=6, padx=5, pady=5, sticky="w")
 		
 		self.canvas.create_window((4,4),window=self.search_frame,anchor="nw")
 		
@@ -281,6 +284,10 @@ class WS_Shipping(object):
 		# set initial value of contract total display and reset related radiobutton
 		total_var.set(-1)
 		total_price.set("$" + str(contract[5]))
+		
+		# reset shipping number to base value if user closed window before saving
+		if 'Z' in self.shipping_number.get():
+			self.shipping_number.set(self.shipping_number.get()[:-1])
 		
 		# # #
 		# Method: check_select
@@ -555,7 +562,7 @@ class WS_Shipping(object):
 			# clear edit list and show save confirmation message
 			self.ws_edits.clear()
 			tk.messagebox.showinfo("Changes confirmation", "All changes have been saved to Workbook {}.".format(self.dict['main'][self.dict['main'].rfind('/')+1:]))
-			
+		
 	# # #
 	# Method: create_lists
 	# Input: n/a
@@ -564,16 +571,25 @@ class WS_Shipping(object):
 	# # #
 	def create_lists(self):
 	
+		self.contract_list.clear()
+		self.wip_list.clear()
+		self.ship_inv_list.clear()
+	
 		# if lists have not been created yet, do so
 		if not self.contract_list:
 			
 			ship_inv_ws = self.main_wb['SHipInvice'] # open main_wb - ShipInvoice
 			list_end = ship_inv_ws.max_row+1
 			
-			# # create list of all contract numbers that exists as shipments in records
+			# # create list of all contract numbers and total associated quantity that exists as shipments in records
 			for i in range(1, list_end):
-				if not ship_inv_ws['B'+str(i)].value is None:
-					self.ship_inv_list.append(ship_inv_ws['B'+str(i)].value)
+				if not ship_inv_ws['B'+str(i)].value is None and not ship_inv_ws['E'+str(i)].value is None:
+					ship_num = ship_inv_ws['B'+str(i)].value
+					
+					if ship_num in self.ship_inv_list:
+						self.ship_inv_list[ship_num] += ship_inv_ws['E'+str(i)].value
+					else:
+						self.ship_inv_list[ship_num] = ship_inv_ws['E'+str(i)].value
 			
 			main_ws = self.main_wb['DLAORDERS'] # open main_wb - DLAORDERS
 			list_start = 278 # row number that search should start at for main_ws (dependent on what orders have come in)
@@ -584,7 +600,7 @@ class WS_Shipping(object):
 			for i in range(list_start, list_end):
 				if not main_ws['I'+str(i)].value is None:
 					
-					data = [main_ws['B'+str(i)].value, main_ws['I'+str(i)].value, main_ws['F'+str(i)].value, main_ws['G'+str(i)].value, main_ws['E'+str(i)].value, main_ws['K'+str(i)].value, main_ws['B'+str(i)].value in self.ship_inv_list]
+					data = [main_ws['B'+str(i)].value, main_ws['I'+str(i)].value, main_ws['F'+str(i)].value, main_ws['G'+str(i)].value, main_ws['E'+str(i)].value, main_ws['K'+str(i)].value]
 					self.contract_list.append(data)
 			
 			# open wip_wb and get reference for final row
@@ -606,7 +622,7 @@ class WS_Shipping(object):
 		
 		# create main shipping information window
 		t = tk.Toplevel()
-		t.geometry('525x250')
+		t.geometry('600x250')
 		t.title('Shipping Management')
 		
 		def _delete_window():
