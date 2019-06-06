@@ -38,7 +38,7 @@ class WS_Shipping(object):
 	# Utility:
 	#   Determine last used RFID number in shipping information and increment local reference for future shipments 
 	# # #
-	def update_rfid(self):
+	def update_rfid(self, update):
 	
 		# if first time in method, look in workbook for most recent rfid number that was used and set reference
 		if self.next_rfid.get() is "":
@@ -53,14 +53,17 @@ class WS_Shipping(object):
 			# set initial rfid number
 			self.next_rfid.set(main_ws['K'+str(row_search)].value)
 			
-		# increment last 4 digits of rfid number by 1, add leading 0's if necessary
-		hex_part = self.next_rfid.get()[-4:]
-		hex_int = int(hex_part, 16) + 1
-		new_hex = hex(hex_int)[2:].upper()
-		if len(new_hex) < 4: new_hex = "0" + str(new_hex)
-		
-		# set new rfid number
-		self.next_rfid.set(self.next_rfid.get()[:-4] + new_hex)
+		# if rfid was used in last shipment, update number
+		if update:
+				
+			# increment last 4 digits of rfid number by 1, add leading 0's if necessary
+			hex_part = self.next_rfid.get()[-4:]
+			hex_int = int(hex_part, 16) + 1
+			new_hex = hex(hex_int)[2:].upper()
+			if len(new_hex) < 4: new_hex = "0" + str(new_hex)
+			
+			# set new rfid number
+			self.next_rfid.set(self.next_rfid.get()[:-4] + new_hex)
 	
 	# # #
 	# Method: update_view
@@ -416,7 +419,7 @@ class WS_Shipping(object):
 				# update all references for future additions
 				self.next_row += 1
 				self.next_ref += 1
-				self.update_rfid()
+				self.update_rfid(rfid_display.get() != "No")
 				update_numbers()
 				
 				# send confirmation alert before closing window
@@ -656,7 +659,7 @@ class WS_Shipping(object):
 			
 			# create contract lists from main/wip_wb and grab next rfid number
 			self.create_lists()
-			self.update_rfid()
+			self.update_rfid(True)
 			
 		self.canvas = tk.Canvas(t, borderwidth=0)
 		self.scroll = tk.Scrollbar(t, orient="vertical", command=self.canvas.yview)
