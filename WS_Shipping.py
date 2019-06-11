@@ -10,6 +10,8 @@ class WS_Shipping(object):
 	
 	def __init__(self):
 	
+		self.idempot = False				  #	boolean signifying that element has been opened before or not
+	
 		self.contract_list = [] 			  # list of contracts in main_wb - DLAORDERS
 		self.wip_list = []					  # list of contracts in wip_wb
 		self.ship_inv_list = {}				  # list of contracts in main_wb - ShipInvoice
@@ -659,7 +661,9 @@ class WS_Shipping(object):
 			
 			# create contract lists from main/wip_wb and grab next rfid number
 			self.create_lists()
-			self.update_rfid(True)
+			self.update_rfid(not self.idempot)
+			
+			if not self.idempot: self.idempot = True
 			
 		self.canvas = tk.Canvas(t, borderwidth=0)
 		self.scroll = tk.Scrollbar(t, orient="vertical", command=self.canvas.yview)
