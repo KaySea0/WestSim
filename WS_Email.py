@@ -21,6 +21,10 @@ class WS_Email(object):
 		self.ws = 0 # monitor width - used to configure where windows load
 		self.hs = 0 # monitor height - used to configure where windows load
 		
+		# address / password for email login
+		self.MY_ADDRESS = ""
+		self.MY_PASSWORD = ""
+		
 	# # # 
 	# Method: read_template
 	# Input: 
@@ -48,7 +52,7 @@ class WS_Email(object):
 		s = smtplib.SMTP(host='smtp-mail.outlook.com', port=587)
 		s.starttls()
 		
-		s.login(MY_ADDRESS,MY_PASSWORD) # login using defined credentials
+		s.login(self.MY_ADDRESS,self.MY_PASSWORD) # login using defined credentials
 		
 		# send all emails in approved list
 		for msg in self.email_list:
@@ -278,7 +282,7 @@ class WS_Email(object):
 				msg = MIMEMultipart('related')
 
 				# assign email properties
-				msg['From'] = MY_ADDRESS
+				msg['From'] = self.MY_ADDRESS
 				msg['To'] = message_list[count['value']][1]
 				# msg['To'] = "k.cook2499@gmail.com"
 				msg['Subject'] = "Quote"
@@ -356,6 +360,10 @@ class WS_Email(object):
 		# disable button until user has selected sheet
 		process_button = tk.Button(t, text="Process Spreadsheet", state="disabled", command=lambda: self.process_ali_sheet(t))
 		process_button.grid(row=2,column=0,padx=5)
+		
+		login_file = open("login.txt","r")
+		self.MY_ADDRESS = login_file.readline()
+		self.MY_PASSWORD = login_file.readline()
 		
 		# # #
 		# Method: browse_function

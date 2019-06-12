@@ -15,7 +15,6 @@ from email.mime.base import MIMEBase
 from email import encoders
 from string import Template
 from myimages import *
-from settings import *
 
 # shorthand for each month to create PO number
 month_init = ["JA","FE","MR","AP","MY","JU","JY","AU","SE","OC","NV","DE"]
@@ -46,6 +45,10 @@ class WS_Contract(object):
 		self.next_ref = 0 # local reference to next main workbook reference number in DLAORDERS
 		self.contract_edits = [] # list of all new contracts to be added to main workbook
 		self.PO_edits = [] # list of all PO info to be added to main workbook
+		
+		# address / password for email login
+		self.MY_ADDRESS = ""
+		self.MY_PASSWORD = ""
 	
 	# # #
 	# Method: create_dicts
@@ -610,7 +613,7 @@ class WS_Contract(object):
 			
 			msg = MIMEMultipart('related') # create main email object
 
-			msg['From'] = MY_ADDRESS
+			msg['From'] = self.MY_ADDRESS
 			msg['To'] = po_email.get()
 			# msg['To'] = "k.cook2499@gmail.com"
 			msg['Subject'] = "PO"
@@ -647,7 +650,7 @@ class WS_Contract(object):
 			s.starttls()
 			
 			# login and send email 
-			s.login(MY_ADDRESS,MY_PASSWORD)
+			s.login(self.MY_ADDRESS,self.MY_PASSWORD)
 			s.send_message(msg)
 			
 			# confirmation message that PO has been sent out
@@ -719,6 +722,10 @@ class WS_Contract(object):
 			self.next_ref = self.main_wb['DLAORDERS']['A'+str(self.next_row-1)].value+1
 			self.wip_wb = openpyxl.load_workbook(self.dict['wip'])
 			self.create_dicts()
+			
+			login_file = open("login.txt","r")
+			self.MY_ADDRESS = login_file.readline()
+			self.MY_PASSWORD = login_file.readline()
 		
 		# button to process new contracts
 		add_button = tk.Button(main_window, text="Add New Contract", command= self.add_contract)

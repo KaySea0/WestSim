@@ -1,6 +1,8 @@
 import tkinter as tk
 import pickle
 from tkinter import messagebox
+from pathlib import Path
+import json
 
 # change search function to work with ID once all stock has been marked
 
@@ -9,11 +11,14 @@ class WS_Inventory(object):
 	def __init__(self):
 		
 		# load inventory list if it exists, create empty list otherwise
-		try:
-			with open("inventory.txt","rb") as fp:
-				self.inventory_list = pickle.load(fp)
-		except:
-			self.inventory_list = []
+		t_path = Path('config_dict.json')
+		if t_path.is_file():
+			self.inv_path = json.load(open('config_dict.json'))['inv']
+			try:
+				with open(self.inv_path,"rb") as fp:
+					self.inventory_list = pickle.load(fp)
+			except:
+				self.inventory_list = []
 			
 		self.pn_var = tk.StringVar()  # reference variable for part number
 		self.nsn_var = tk.StringVar() # reference variable for NSN
@@ -184,7 +189,7 @@ class WS_Inventory(object):
 		
 	def save_changes(self):
 		
-		with open("inventory.txt","wb") as fp:
+		with open(self.inv_path,"wb") as fp:
 			pickle.dump(self.inventory_list, fp)
 			
 	def edit_window(self, item):

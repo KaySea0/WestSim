@@ -397,7 +397,7 @@ class WS_Shipping(object):
 		# Utility:
 		#   Check to see if all data is valid before saving data on shipment for later addition into workbook
 		# # #
-		def add_edit(window):
+		def add_edit(window, row):
 			
 			# attempt to cast quantity as int; if not possible, default to 0
 			try:
@@ -416,7 +416,7 @@ class WS_Shipping(object):
 				
 				# save data on shipment to be put into workbook
 				# row to add data to - reference number - contract number - vendor name - quantity - total price - shipping number - invoice number - date of shipment - rfid number (when applicable)
-				self.ws_edits.append([self.next_row, self.next_ref, contract[0], contract[2], qty, total_price.get(), self.shipping_number.get(), self.invoice_number.get(), current_date, rfid_display.get()])
+				self.ws_edits.append([self.next_row, self.next_ref, contract[0], contract[2], qty, total_price.get(), self.shipping_number.get(), self.invoice_number.get(), current_date, rfid_display.get(), row])
 				
 				# update all references for future additions
 				self.next_row += 1
@@ -510,7 +510,7 @@ class WS_Shipping(object):
 		button_frame = tk.Frame(wawf)
 		
 		# button used to call checks and attempt to save shipment information
-		submit_button = tk.Button(button_frame, text="Submit", command=lambda: add_edit(wawf))
+		submit_button = tk.Button(button_frame, text="Submit", command=lambda: add_edit(wawf, contract[6]))
 		submit_button.grid(row=0, column=0, padx=5, pady=5)
 		
 		# button used to cancel operation if contract was open on accident
@@ -552,6 +552,14 @@ class WS_Shipping(object):
 				
 				# make font of quantity column red to match preset
 				main_ws['E'+row].font = openpyxl.styles.Font(color=openpyxl.styles.colors.RED)
+				
+				# unhighlight contract in DLAORDERS once final shipment has been made
+				if edit[6][-1:] == "Z":
+					contract_ws = self.main_wb['DLAORDERS']
+					normal = openpyxl.styles.Side(border_style="thin", color="C0C0C0")
+					
+					contract_ws['B'+str(edit[10])].fill = openpyxl.styles.PatternFill("solid", fgColor="FFFFFF")
+					contract_ws['B'+str(edit[10])].border = openpyxl.styles.Border(top=normal, left=normal, right=normal, bottom=normal)
 			
 			# attempt to save changes to workbook
 			while True:
@@ -601,11 +609,11 @@ class WS_Shipping(object):
 			list_end = main_ws.max_row+1
 			
 			# # create list of all contracts from main_wb; data outlined below
-			# Contract Number - PO Number - Vendor Name - Date Awarded - Quantity - Contract Total - Exists in ShipInvoice
+			# Contract Number - PO Number - Vendor Name - Date Awarded - Quantity - Contract Total - main_ws row number
 			for i in range(list_start, list_end):
 				if not main_ws['I'+str(i)].value is None:
 					
-					data = [main_ws['B'+str(i)].value, main_ws['I'+str(i)].value, main_ws['F'+str(i)].value, main_ws['G'+str(i)].value, main_ws['E'+str(i)].value, main_ws['K'+str(i)].value]
+					data = [main_ws['B'+str(i)].value, main_ws['I'+str(i)].value, main_ws['F'+str(i)].value, main_ws['G'+str(i)].value, main_ws['E'+str(i)].value, main_ws['K'+str(i)].value, i]
 					self.contract_list.append(data)
 			
 			# open wip_wb and get reference for final row

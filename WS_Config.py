@@ -15,6 +15,7 @@ class WS_Config(object):
 		self.cage_var = tk.StringVar()
 		self.main_var = tk.StringVar()
 		self.contract_var = tk.StringVar()
+		self.inv_var = tk.StringVar()
 		t_path = Path('config_dict.json')
 		
 		if t_path.is_file():
@@ -23,6 +24,7 @@ class WS_Config(object):
 			self.cage_var.set(self.config_dict["cage"])
 			self.main_var.set(self.config_dict["main"])
 			self.contract_var.set(self.config_dict["wip"])
+			self.inv_var.set(self.config_dict['inv'])
 		else:
 			self.config_dict = {}
 			
@@ -42,6 +44,10 @@ class WS_Config(object):
 		self.config_dict['wip'] = filedialog.askopenfilename()
 		self.contract_var.set(self.config_dict['wip'])
 		
+	def inventory_browse(self):
+		self.config_dict['inv'] = filedialog.askopenfilename()
+		self.inv_var.set(self.config_dict['inv'])
+		
 	def save_config(self,t):
 		json_temp = json.dumps(self.config_dict)
 		f = open("config_dict.json","w")
@@ -55,7 +61,7 @@ class WS_Config(object):
 		
 		t = tk.Toplevel()
 		t.title("Configuration Window")
-		t.geometry('600x250')
+		#t.geometry('600x250')
 		
 		def _delete_window():
 			try:
@@ -101,8 +107,17 @@ class WS_Config(object):
 		contract_browse = tk.Button(t, text="Browse", command= self.contract_browse)
 		contract_browse.grid(row=3, column=2, padx=10, pady=10)
 		
+		inv_label = tk.Label(t, text="Inventory List")
+		inv_label.grid(row=4, column=0, padx=10, pady=10)
+		
+		inv_entry = tk.Entry(t, state="disabled", textvar = self.inv_var, width=60)
+		inv_entry.grid(row=4, column=1, padx=10, pady=10)
+		
+		inv_browse = tk.Button(t, text="Browse", command= self.inventory_browse)
+		inv_browse.grid(row=4, column=2, padx=10, pady=10)
+		
 		cage_dict_create = tk.Button(t, text="Process Cagecodes", command=lambda: cage_dict_init(self.config_dict['cage']))
-		cage_dict_create.grid(row=4, column=0, padx=10, pady=10)
+		cage_dict_create.grid(row=5, column=0, padx=10, pady=10)
 		
 		save_button = tk.Button(t, text="Save Changes", command=lambda: self.save_config(t))
-		save_button.grid(row=4, column=1, pady=10)
+		save_button.grid(row=5, column=1, pady=10)
