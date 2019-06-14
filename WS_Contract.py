@@ -724,7 +724,7 @@ class WS_Contract(object):
 			self.create_dicts()
 			
 			login_file = open("login.txt","r")
-			self.MY_ADDRESS = login_file.readline()
+			self.MY_ADDRESS = login_file.readline().replace("\n","")
 			self.MY_PASSWORD = login_file.readline()
 		
 		# button to process new contracts

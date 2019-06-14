@@ -362,7 +362,7 @@ class WS_Email(object):
 		process_button.grid(row=2,column=0,padx=5)
 		
 		login_file = open("login.txt","r")
-		self.MY_ADDRESS = login_file.readline()
+		self.MY_ADDRESS = login_file.readline().replace("\n","")
 		self.MY_PASSWORD = login_file.readline()
 		
 		# # #
