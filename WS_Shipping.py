@@ -26,6 +26,8 @@ class WS_Shipping(object):
 		self.shipping_number = tk.StringVar() # reference for shipping number of shipment for WAWF window
 		self.invoice_number = tk.StringVar()  # reference for invoice number of shipment for WAWF window
 		
+		self.queue = []						  # list of contract that user has put into session queue
+		
 		self.search_frame = None			  # frame that houses search results
 		self.canvas = None					  # canvas used to create result pane
 		self.scroll = None					  # scrollbar for search results
@@ -73,11 +75,14 @@ class WS_Shipping(object):
 	# Utility:
 	#   Update search result screen with matching contracts based on contract and/or PO number
 	# # #
-	def update_view(self, *args):
+	def update_view(self, queue):
 		
 		# clear current search results if they exist
 		if self.search_frame is not None:
 			self.search_frame.destroy()
+		
+		# local list that contains contracts that will be displayed to user
+		display_list = []
 		
 		# create new frame reference
 		self.search_frame = tk.Frame(self.canvas)
@@ -98,37 +103,39 @@ class WS_Shipping(object):
 		qty_search_label = tk.Label(self.search_frame, text="Quantity")
 		qty_search_label.grid(row=0, column=3, padx=5, pady=5)
 		
-		# if 'search' button is pressed with no inputs, grab all possible contracts
-		if not self.contract_var.get() and not self.po_var.get(): display_list = self.contract_list
-		else: 		
-			# local list that will store matching contract references
-			display_list = []
-			
-			# looping through all contracts pulled from main_wb
-			for contract in self.contract_list:
-			
-				# fine tune user contract number search term for proper comparison
-				if self.contract_var.get():
-					if not self.contract_var.get().isalpha(): contract_comp = self.contract_var.get()
-					else: contract_comp = self.contract_var.get().lower()
-
-				# fine tune user po number search term for proper comparison
-				if self.po_var.get():
-					if not self.po_var.get().isalpha(): po_comp = self.po_var.get()
-					else: po_comp = self.po_var.get().lower()
+		# if queue has contracts stored, display them
+		if queue and self.queue: display_list = self.queue.copy()
+		elif not queue: # if normal search button has been pressed, perform certain search
+		
+			# if 'search' button is pressed with no inputs, grab all possible contracts
+			if not self.contract_var.get() and not self.po_var.get(): display_list = self.contract_list.copy()
+			else: 	
 				
-				# if user provided input for contract AND PO number...
-				if self.contract_var.get():
+				# looping through all contracts pulled from main_wb
+				for contract in self.contract_list:
+				
+					# fine tune user contract number search term for proper comparison
+					if self.contract_var.get():
+						if not self.contract_var.get().isalpha(): contract_comp = self.contract_var.get()
+						else: contract_comp = self.contract_var.get().lower()
+
+					# fine tune user po number search term for proper comparison
 					if self.po_var.get():
-						# check to see if contract matches both values; if so, add to list for later displaying
-						if contract_comp in contract[0].lower() and po_comp in contract[1].lower():
+						if not self.po_var.get().isalpha(): po_comp = self.po_var.get()
+						else: po_comp = self.po_var.get().lower()
+					
+					# if user provided input for contract AND PO number...
+					if self.contract_var.get():
+						if self.po_var.get():
+							# check to see if contract matches both values; if so, add to list for later displaying
+							if contract_comp in contract[0].lower() and po_comp in contract[1].lower():
+								display_list.append(contract)
+						else: # if user provided input for only contract number...
+							if contract_comp in contract[0].lower():
+								display_list.append(contract)
+					else: # if user provided input for only PO number...
+						if po_comp in contract[1].lower():
 							display_list.append(contract)
-					else: # if user provided input for only contract number...
-						if contract_comp in contract[0].lower():
-							display_list.append(contract)
-				else: # if user provided input for only PO number...
-					if po_comp in contract[1].lower():
-						display_list.append(contract)
 		
 		# loop through all contracts that match search values
 		for i in range(1, len(display_list)+1):
@@ -253,6 +260,10 @@ class WS_Shipping(object):
 		preservation_info.insert(1.0, preservation_text)
 		preservation_info.configure(state="disabled", inactiveselectbackground=po_search.cget("selectbackground"))
 		preservation_info.grid(row=3, column=1, sticky="w", padx=5, pady=5)
+		
+		# button that will add contract to session queue
+		vsm_queue = tk.Button(vsm, text="Add to Queue", command=lambda: self.queue.append(contract))
+		vsm_queue.grid(row=4, column=2, padx=5, pady=5)
 	
 	# # #
 	# Method: wawf_window
@@ -672,6 +683,7 @@ class WS_Shipping(object):
 			self.update_rfid(not self.idempot)
 			
 			if not self.idempot: self.idempot = True
+			self.queue.clear()
 			
 		self.canvas = tk.Canvas(t, borderwidth=0)
 		self.scroll = tk.Scrollbar(t, orient="vertical", command=self.canvas.yview)
@@ -696,8 +708,12 @@ class WS_Shipping(object):
 		po_entry.grid(row=0, column=3, padx=5, pady=5)
 		
 		# search button for finding matching contracts
-		search_button = tk.Button(input_frame, text="Search", command=self.update_view)
+		search_button = tk.Button(input_frame, text="Search", command=lambda: self.update_view(False))
 		search_button.grid(row=0, column=4, padx=5, pady=5)
+		
+		# queue button for pulling up contracts that are being worked on in current session
+		queue_button = tk.Button(input_frame, text="Queue", command=lambda: self.update_view(True))
+		queue_button.grid(row=0, column=5, padx=5, pady=5)
 		
 		# pack input elements into window
 		input_frame.pack(anchor="n", fill=tk.X)
