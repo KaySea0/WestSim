@@ -36,8 +36,8 @@ class Westsim_App(object):
 		self.ws = root.winfo_screenwidth()
 		self.hs = root.winfo_screenheight()
 		
-		w = 500
-		h = 300
+		w = 300
+		h = 190
 		
 		x = (self.ws/2) - (w/2)
 		y = (self.hs/2) - (h/2)
@@ -56,7 +56,7 @@ class Westsim_App(object):
 		frame.pack(side=tk.LEFT,anchor="nw")
 		
 		canvas = tk.Canvas(frame,width=99,height=39)
-		canvas.grid(row=0,column=0)
+		canvas.grid(row=0,column=0, columnspan=2, padx=5, pady=5)
 		img = tk.PhotoImage(data=logo_string)
 		canvas.image = img
 		canvas.create_image(0,0, anchor="nw", image=img)
