@@ -116,12 +116,12 @@ class WS_Shipping(object):
 				
 					# fine tune user contract number search term for proper comparison
 					if self.contract_var.get():
-						if not self.contract_var.get().isalpha(): contract_comp = self.contract_var.get()
+						if self.contract_var.get().isdigit(): contract_comp = self.contract_var.get()
 						else: contract_comp = self.contract_var.get().lower()
 
 					# fine tune user po number search term for proper comparison
 					if self.po_var.get():
-						if not self.po_var.get().isalpha(): po_comp = self.po_var.get()
+						if self.po_var.get().isdigit(): po_comp = self.po_var.get()
 						else: po_comp = self.po_var.get().lower()
 					
 					# if user provided input for contract AND PO number...
