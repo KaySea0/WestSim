@@ -131,6 +131,8 @@ class WS_Shipping(object):
 							if contract_comp in contract[0].lower() and po_comp in contract[1].lower():
 								display_list.append(contract)
 						else: # if user provided input for only contract number...
+							if contract[0] == "SPE7M8-19-V-3317": 
+								print(contract[0].lower(), contract_comp)
 							if contract_comp in contract[0].lower():
 								display_list.append(contract)
 					else: # if user provided input for only PO number...
