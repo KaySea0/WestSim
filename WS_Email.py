@@ -115,33 +115,33 @@ class WS_Email(object):
 		if ali_max_row == 2 and cage_dict.get(str(ali_ws['V2'].value),"0") != "0":
 			
 			# obtain part number (P/N) and quantity (QTY) of desired part
-			part_info = "P/N: " + str(ali_ws['X2'].value) + "<br> QTY: " + str(ali_ws['I2'].value) 
+			part_info = "P/N: " + str(ali_ws['Z2'].value) + "<br> QTY: " + str(ali_ws['J2'].value) 
 			
 			# store company name (A), P/N (B), and QTY (C) in next available bid sheet row
-			bid_ws['A' + str(bid_row)] = str(ali_ws['W2'].value)
-			bid_ws['B' + str(bid_row)] = str(ali_ws['X2'].value)
-			bid_ws['C' + str(bid_row)] = str(ali_ws['I2'].value)
+			bid_ws['A' + str(bid_row)] = str(ali_ws['Y2'].value)
+			bid_ws['B' + str(bid_row)] = str(ali_ws['Z2'].value)
+			bid_ws['C' + str(bid_row)] = str(ali_ws['J2'].value)
 			
 			# save bid sheet
 			bid_wb.save(bid_folder + '/' + cur_date + '_Bid_Sheet.xlsx')
 			
 			# if vendor allows for price break, add this request to quote
-			if 'p' in cage_dict[str(ali_ws['V2'].value)]['options']:
+			if 'p' in cage_dict[str(ali_ws['X2'].value)]['options']:
 				part_info += " and next price break"
 			part_info += "<br><br>"
 			
 			sub_message = email_body.substitute(PART_INFO = part_info) # using template, generate email body with part_info substitution
-			to_address = cage_dict[str(ali_ws['V2'].value)]['email'] # grab vendor contact info from dictionary
+			to_address = cage_dict[str(ali_ws['X2'].value)]['email'] # grab vendor contact info from dictionary
 			message_list.append((sub_message,to_address)) # add email to list for further validation
 			
 		else: # for normal execution (ie. more than one row of data)
 			for i in range(2,ali_max_row+1):
 				
 				# temp variables used to make following code cleaner
-				cur_vendor_name = str(ali_ws['W' + str(i)].value)
-				cur_cage_code = str(ali_ws['V' + str(i)].value)
-				cur_PN = str(ali_ws['X' + str(i)].value)
-				cur_QTY = str(ali_ws['I' + str(i)].value)
+				cur_vendor_name = str(ali_ws['Y' + str(i)].value)
+				cur_cage_code = str(ali_ws['X' + str(i)].value)
+				cur_PN = str(ali_ws['Z' + str(i)].value)
+				cur_QTY = str(ali_ws['J' + str(i)].value)
 				
 				# first line does not have any prior cage codes to compare to for grouping
 				if i == 2 and cage_dict.get(cur_cage_code,"0") != "0":
