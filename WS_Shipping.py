@@ -19,7 +19,8 @@ class WS_Shipping(object):
 		self.dict = None					  # config dictionary reference
 		self.main_wb = None					  # main workbook that contains main contract / shipment information
 		self.wip_wb = None					  # secondary workbook that contains detailed information on select contracts
-		
+		self.po_wb = None					  # workbook that contains information relevant to paying PO's in timely manner
+
 		self.contract_var = tk.StringVar()    # reference for contract number for searching
 		self.po_var = tk.StringVar()	      # reference for PO number for searching
 		self.next_rfid = tk.StringVar()	   	  # reference for next RFID number for WAWF window
@@ -428,7 +429,7 @@ class WS_Shipping(object):
 				current_date = datetime.datetime.now().strftime("%m/%d/%Y")
 				
 				# save data on shipment to be put into workbook
-				# row to add data to - reference number - contract number - vendor name - quantity - total price - shipping number - invoice number - date of shipment - rfid number (when applicable)
+				# row to add data to - reference number - contract number - vendor name - quantity - total price - shipping number - invoice number - date of shipment - rfid number (when applicable) - main_wb row
 				self.ws_edits.append([self.next_row, self.next_ref, contract[0], contract[2], qty, total_price.get(), self.shipping_number.get(), self.invoice_number.get(), current_date, rfid_display.get(), row])
 				
 				# update all references for future additions
@@ -546,6 +547,10 @@ class WS_Shipping(object):
 			
 			# open up sheet that contains shipment information
 			main_ws = self.main_wb['SHipInvice']
+			contract_ws = self.main_wb['DLAORDERS']
+			
+			po_ws = self.po_wb.active
+			po_row = po_ws.max_row+1
 			
 			# running through all contracts to be saved
 			for edit in self.ws_edits:
@@ -566,9 +571,21 @@ class WS_Shipping(object):
 				# make font of quantity column red to match preset
 				main_ws['E'+row].font = openpyxl.styles.Font(color=openpyxl.styles.colors.RED)
 				
+				# add receiving information to po_book for payment reminder
+				po_ws['A'+str(po_row)] = edit[8]																		# date received
+				po_ws['B'+str(po_row)] = contract_ws['I'+str(edit[10])].value											# PO number
+				po_ws['C'+str(po_row)] = contract_ws['E'+str(edit[10])].value											# listed quantity
+				po_ws['D'+str(po_row)] = contract_ws['L'+str(edit[10])].value											# listed cost
+				po_ws['E'+str(po_row)] = edit[4]																		# received quantity
+				
+				po_unit_value = contract_ws['L'+str(edit[10])].value / contract_ws['E'+str(edit[10])].value
+				po_ws['F'+str(po_row)] = round(po_unit_value * edit[4],2)												# received cost
+				po_ws['G'+str(po_row)] = (datetime.datetime.now() + datetime.timedelta(days=25)).strftime("%m/%d/%Y") 	# rough due date (+25 days)
+				
+				po_row += 1
+				
 				# unhighlight contract in DLAORDERS once final shipment has been made
 				if edit[6][-1:] == "Z":
-					contract_ws = self.main_wb['DLAORDERS']
 					normal = openpyxl.styles.Side(border_style="thin", color="C0C0C0")
 					
 					contract_ws['B'+str(edit[10])].fill = openpyxl.styles.PatternFill("solid", fgColor="FFFFFF")
@@ -578,16 +595,17 @@ class WS_Shipping(object):
 			while True:
 				try: # if workbook is closed, changes will be saved
 					self.main_wb.save(self.dict['main']) # save main_wb
+					self.po_wb.save(self.dict['po']) # save po_wb
 					break
 				except:
 					pass
 				
-				# if workbook is not closed, inform user of this fact and attempt to save again after 'ok' is pressed
-				tk.messagebox.showinfo("An error has occurred", "Workbook {} is still open, please close it and press 'Ok' to continue operation.".format(self.dict['main'][self.dict['main'].rfind('/')+1:]))
+				# if workbooks are not closed, inform user of this fact and attempt to save again after 'ok' is pressed
+				tk.messagebox.showinfo("An error has occurred", "Workbook {} or {} is still open, please close it and press 'Ok' to continue operation.".format(self.dict['main'][self.dict['main'].rfind('/')+1:], self.dict['po'][self.dict['po'].rfind('/')+1:]))
 			
 			# clear edit list and show save confirmation message
 			self.ws_edits.clear()
-			tk.messagebox.showinfo("Changes confirmation", "All changes have been saved to Workbook {}.".format(self.dict['main'][self.dict['main'].rfind('/')+1:]))
+			tk.messagebox.showinfo("Changes confirmation", "All changes have been saved to Workbook {} and {}.".format(self.dict['main'][self.dict['main'].rfind('/')+1:], self.dict['po'][self.dict['po'].rfind('/')+1:]))
 		
 	# # #
 	# Method: create_lists
@@ -666,6 +684,7 @@ class WS_Shipping(object):
 			self.dict = json.load(open('config_dict.json'))
 			self.main_wb = openpyxl.load_workbook(self.dict['main'])
 			self.wip_wb = openpyxl.load_workbook(self.dict['wip'])
+			self.po_wb = openpyxl.load_workbook(self.dict['po'])
 			
 			# open main_wb and determine last non-empty row in worksheet
 			check_row = self.main_wb['SHipInvice'].max_row
