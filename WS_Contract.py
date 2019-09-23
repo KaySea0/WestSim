@@ -699,6 +699,8 @@ class WS_Contract(object):
 		main_window = tk.Toplevel()
 		main_window.geometry('300x200')
 		main_window.title('Contract Management')
+		main_window.grid_columnconfigure(0, weight=1)
+		main_window.config(bg="white")
 		
 		def _delete_window():
 			try:
