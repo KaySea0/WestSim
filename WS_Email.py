@@ -10,7 +10,6 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from string import Template
 from pathlib import Path
-from settings import *
 
 class WS_Email(object):
 
