@@ -6,6 +6,11 @@ import openpyxl
 import os
 import datetime
 
+# # #
+# TODO: modify how L column is read (if formula, compute value)
+# i.e. =2.96*25 -> grab 2.96 and 25, multiply, assign to variable for further calculations
+# # #
+
 class WS_Shipping(object):
 	
 	def __init__(self):
