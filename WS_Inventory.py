@@ -149,16 +149,10 @@ class WS_Inventory(object):
 		nsn_entry = tk.Entry(input_frame, width=20, textvariable=self.nsn_var)
 		nsn_entry.grid(row=0, column=3, padx=5, pady=5)
 		
-		id_label = tk.Label(input_frame, text="ID:")
-		id_label.grid(row=0, column=4, padx=5, pady=5)
-		
-		id_entry = tk.Entry(input_frame, width=5, textvariable=self.id_var)
-		id_entry.grid(row=0, column=5, padx=5, pady=5)
-		
 		input_frame.pack(anchor="n", fill=tk.X)
 		self.update_view()
 		
-	def add_stock(self):
+	def add_stock(self, win):
 		
 		self.inventory_list.append([len(self.inventory_list)+1, self.pn_add_var.get(), self.nsn_add_var.get(), self.qty_add_var.get(), self.id_add_var.get()])
 		
@@ -167,6 +161,7 @@ class WS_Inventory(object):
 		self.qty_add_var.set(0)
 		self.id_add_var.set('')
 		
+		win.destroy()
 		messagebox.showinfo("Stock Added", "Stock information has been saved!")
 		
 	def edit_stock(self, index, win):
@@ -191,6 +186,8 @@ class WS_Inventory(object):
 		
 		with open(self.inv_path,"wb") as fp:
 			pickle.dump(self.inventory_list, fp)
+		
+		messagebox.showinfo("Data Saved", "Changes to inventory have been saved!")
 			
 	def edit_window(self, item):
 		e_window = tk.Toplevel()
@@ -261,7 +258,7 @@ class WS_Inventory(object):
 		id_entry = tk.Entry(win, width=5, textvariable=self.id_add_var)
 		id_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
 		
-		submit_button = tk.Button(win, text="Submit", command=self.add_stock)
+		submit_button = tk.Button(win, text="Submit", command=lambda: self.add_stock(win))
 		submit_button.grid(row=4, column=1, padx=5, pady=5, sticky="w")
 		
 	def inventory_window(self):
