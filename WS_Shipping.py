@@ -576,14 +576,20 @@ class WS_Shipping(object):
 				# make font of quantity column red to match preset
 				main_ws['E'+row].font = openpyxl.styles.Font(color=openpyxl.styles.colors.RED)
 				
+				cost_val = contract_ws['L'+str(edit[10])].value
+				# if isinstance(const_val, str):
+					# v1 = float(cost_val[1:cost_val.find("*")])
+					# v2 = float(cost_val[cost_val.find("*")+1:])
+					# cost_val = v1*v2
+				
 				# add receiving information to po_book for payment reminder
 				po_ws['A'+str(po_row)] = edit[8]																		# date received
 				po_ws['B'+str(po_row)] = contract_ws['I'+str(edit[10])].value											# PO number
 				po_ws['C'+str(po_row)] = contract_ws['E'+str(edit[10])].value											# listed quantity
-				po_ws['D'+str(po_row)] = contract_ws['L'+str(edit[10])].value											# listed cost
+				po_ws['D'+str(po_row)] = cost_val																		# listed cost
 				po_ws['E'+str(po_row)] = edit[4]																		# received quantity
 				
-				po_unit_value = contract_ws['L'+str(edit[10])].value / contract_ws['E'+str(edit[10])].value
+				po_unit_value = cost_val / contract_ws['E'+str(edit[10])].value
 				po_ws['F'+str(po_row)] = round(po_unit_value * edit[4],2)												# received cost
 				po_ws['G'+str(po_row)] = (datetime.datetime.now() + datetime.timedelta(days=25)).strftime("%m/%d/%Y") 	# rough due date (+25 days)
 				

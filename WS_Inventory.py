@@ -186,8 +186,6 @@ class WS_Inventory(object):
 		
 		with open(self.inv_path,"wb") as fp:
 			pickle.dump(self.inventory_list, fp)
-		
-		messagebox.showinfo("Data Saved", "Changes to inventory have been saved!")
 			
 	def edit_window(self, item):
 		e_window = tk.Toplevel()
